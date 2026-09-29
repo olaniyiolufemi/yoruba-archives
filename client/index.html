@@ -3,391 +3,492 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Yoruba Archives — Preserving Culture, Amplifying Heritage</title>
+  <title>Yoruba Archives — Cultural Research Repository</title>
   <meta name="description" content="A peer-reviewed digital repository for Yoruba cultural research, oral traditions, art, linguistics, philosophy, and historical scholarship." />
-  <meta name="keywords" content="Yoruba, African heritage, cultural archive, oral traditions, Ifa, linguistics, digital humanities" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div id="app">
 
-  <nav id="main-nav">
-    <div class="nav-inner">
-      <div class="nav-logo" id="nav-logo" onclick="navigate('home')">
-        <div class="nav-logo-icon">🏺</div>
-        <div class="nav-logo-text">Yoruba<span>Archives</span></div>
-      </div>
-      <div class="nav-links">
-        <button class="nav-link active" id="nav-home" onclick="navigate('home')">Home</button>
-        <button class="nav-link" id="nav-archive" onclick="navigate('archive')">Archive</button>
-        <button class="nav-link" id="nav-requests" onclick="navigate('requests')">Research Needs</button>
-        <button class="nav-link" id="nav-admin" onclick="navigate('admin')" style="display:none">Admin</button>
-      </div>
-      <div class="nav-spacer"></div>
-      <div class="nav-actions">
-        <button class="notif-btn" id="notif-btn" title="Notifications" style="display:none" onclick="toggleNotifPanel()">
-          🔔
-          <span class="notif-badge" id="notif-badge" style="display:none">0</span>
-        </button>
-        <div class="avatar" id="user-avatar" style="display:none" onclick="toggleUserMenu()">?</div>
-        <button class="btn btn-ghost btn-sm" id="login-btn" onclick="openModal('login-modal')">Sign In</button>
-        <button class="btn btn-primary btn-sm" id="register-btn" onclick="openModal('register-modal')">Join</button>
-        <button class="btn btn-primary btn-sm" id="submit-btn" style="display:none" onclick="openModal('submit-modal')">+ Submit Research</button>
-      </div>
-    </div>
-  </nav>
+  <!-- ═══ SIDEBAR ═══════════════════════════════════════════ -->
+  <aside class="sidebar">
 
-  <div class="notif-panel" id="notif-panel"></div>
-  <div class="user-menu" id="user-menu">
-    <div class="user-menu-header">
-      <div class="user-menu-name" id="menu-name"></div>
-      <div class="user-menu-role" id="menu-role"></div>
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/>
+        </svg>
+      </div>
+      <span class="logo-wordmark">YorubaArchives</span>
     </div>
-    <div class="user-menu-item" onclick="navigate('dashboard'); toggleUserMenu()">📊 My Dashboard</div>
-    <div class="user-menu-item" onclick="navigate('my-submissions'); toggleUserMenu()">📄 My Submissions</div>
-    <div class="user-menu-item danger" onclick="logout()">↩ Sign Out</div>
-  </div>
 
-  <!-- HOME PAGE -->
-  <div class="page active" id="page-home">
-    <div class="hero">
-      <div class="hero-bg"></div>
-      <div class="hero-pattern"></div>
-      <div class="hero-content">
-        <div class="hero-tag">⊕ Yoruba Cultural Repository</div>
-        <h1 class="hero-title">
-          Preserving the <span class="accent">Soul of Yoruba</span><br>for Future Generations
-        </h1>
-        <p class="hero-subtitle">
-          A peer-reviewed digital archive connecting researchers, historians, and cultural custodians with verified Yoruba scholarship across art, language, philosophy, and tradition.
-        </p>
-        <div class="hero-actions">
-          <button class="btn btn-primary" onclick="navigate('archive')">🔍 Explore Archive</button>
-          <button class="btn btn-ghost" onclick="openModal('submit-modal')">📜 Submit Research</button>
-        </div>
-        <div class="hero-stats">
-          <div>
-            <div class="hero-stat-val" id="stat-subs">—</div>
-            <div class="hero-stat-label">Verified Studies</div>
-          </div>
-          <div>
-            <div class="hero-stat-val" id="stat-cats">6</div>
-            <div class="hero-stat-label">Research Categories</div>
-          </div>
-          <div>
-            <div class="hero-stat-val" id="stat-reqs">—</div>
-            <div class="hero-stat-label">Research Requests</div>
-          </div>
-          <div>
-            <div class="hero-stat-val" id="stat-sources">4</div>
-            <div class="hero-stat-label">Aggregated Sources</div>
-          </div>
-        </div>
+    <div class="account-switcher" id="account-switcher" onclick="toggleUserMenu()">
+      <div class="account-avatar" id="sidebar-avatar">?</div>
+      <div class="account-info">
+        <div class="account-name" id="sidebar-name">Sign In</div>
+        <div class="account-sub" id="sidebar-role">Guest</div>
+      </div>
+      <div class="account-chevron">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </div>
     </div>
 
-    <div class="container">
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">📌 Featured Research</div>
-          <button class="btn btn-ghost btn-sm" onclick="navigate('archive')">View all →</button>
-        </div>
-        <div class="featured-strip" id="featured-strip">
-          <div class="skeleton skeleton-card" style="width:260px;height:140px;flex-shrink:0"></div>
-          <div class="skeleton skeleton-card" style="width:260px;height:140px;flex-shrink:0"></div>
-          <div class="skeleton skeleton-card" style="width:260px;height:140px;flex-shrink:0"></div>
-        </div>
+    <!-- WORKSPACE NAV -->
+    <div class="nav-section">
+      <div class="nav-section-label">Workspace</div>
+      <div class="nav-item active" id="nav-home" onclick="navigate('home')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Home
       </div>
-
-      <div class="adinkra-divider">✦ ✦ ✦</div>
-
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">🗂 Browse by Category</div>
-        </div>
-        <div class="category-grid" id="home-categories"></div>
+      <div class="nav-item" id="nav-archive" onclick="navigate('archive')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        Archive
       </div>
+      <div class="nav-item" id="nav-requests" onclick="navigate('requests')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+        </span>
+        Research Needs
+      </div>
+      <div class="nav-item" id="nav-my-submissions" onclick="navigate('my-submissions')" style="display:none">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </span>
+        My Submissions
+      </div>
+      <div class="nav-item" id="nav-admin" onclick="navigate('admin')" style="display:none">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </span>
+        Admin
+      </div>
+    </div>
 
-      <div class="adinkra-divider">✦ ✦ ✦</div>
-
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">🙋 Most Needed Research</div>
-          <button class="btn btn-ghost btn-sm" onclick="navigate('requests')">View all →</button>
-        </div>
-        <div class="requests-list" id="home-requests"></div>
+    <!-- CATEGORIES NAV -->
+    <div class="nav-section">
+      <div class="nav-section-label">Categories</div>
+      <div class="nav-item" onclick="navigate('archive');state.archiveCat=1;loadArchive()">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+        </span>
+        Art & Sculpture
+      </div>
+      <div class="nav-item" onclick="navigate('archive');state.archiveCat=2;loadArchive()">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        Linguistics
+      </div>
+      <div class="nav-item" onclick="navigate('archive');state.archiveCat=3;loadArchive()">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </span>
+        Cosmology
+      </div>
+      <div class="nav-item" onclick="navigate('archive');state.archiveCat=4;loadArchive()">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5zM20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5zM3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14zM14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5zM15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5zM8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z"/></svg>
+        </span>
+        History & Wars
+      </div>
+      <div class="nav-item" onclick="navigate('archive');state.archiveCat=5;loadArchive()">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </span>
+        Music & Poetry
+      </div>
+      <div class="nav-item" onclick="navigate('archive');state.archiveCat=6;loadArchive()">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12M2 7l10-5 10 5-10 5-10-5z"/><path d="M7 9.5v5L12 17l5-2.5v-5"/></svg>
+        </span>
+        Medicine & Botany
       </div>
     </div>
 
-    <footer>
-      <div class="footer-brand">YorubaArchives</div>
-      <div>© 2026 — Built to honor Yoruba scholarship and cultural memory.</div>
-    </footer>
-  </div>
-
-  <!-- ARCHIVE PAGE -->
-  <div class="page" id="page-archive">
-    <div class="container">
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">📚 Research Archive</div>
-          <div style="display:flex;gap:0.5rem;align-items:center">
-            <select class="filter-select" id="sort-select" onchange="loadArchive()">
-              <option value="">Latest</option>
-              <option value="title">Title A–Z</option>
-            </select>
-          </div>
-        </div>
-        <div class="search-bar">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="archive-search" placeholder="Search by title, abstract..." oninput="debounceSearch()" />
-        </div>
-        <div class="filter-row" id="category-filters">
-          <button class="filter-chip active" data-cat="" onclick="setFilter(this,'')">All</button>
-        </div>
-        <div class="filter-row">
-          <button class="filter-chip active" data-src="" onclick="setSrcFilter(this,'')">All Sources</button>
-          <button class="filter-chip" data-src="contributed" onclick="setSrcFilter(this,'contributed')">Contributed</button>
-          <button class="filter-chip" data-src="aggregated" onclick="setSrcFilter(this,'aggregated')">Aggregated</button>
-        </div>
-        <div id="archive-grid" class="grid-2"></div>
-        <div class="pagination" id="archive-pagination"></div>
+    <!-- ACCOUNT NAV -->
+    <div class="nav-section">
+      <div class="nav-section-label">Account</div>
+      <div class="nav-item" id="sidebar-login" onclick="openModal('login-modal')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        </span>
+        Sign In
+      </div>
+      <div class="nav-item" id="sidebar-logout" style="display:none" onclick="logout()">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </span>
+        Sign Out
       </div>
     </div>
-  </div>
 
-  <!-- DETAIL PAGE -->
-  <div class="page" id="page-detail">
-    <div class="detail-header">
-      <div class="detail-content" style="padding:0 1.5rem">
-        <div class="back-btn" onclick="goBack()">← Back to Archive</div>
-        <div class="detail-category" id="detail-category"></div>
+    <div class="sidebar-spacer"></div>
+
+    <!-- UPGRADE CARD -->
+    <div class="upgrade-card">
+      <div class="upgrade-dots"></div>
+      <div class="upgrade-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="upgrade-title">Submit Research</div>
+      <div class="upgrade-body">Contribute to the Yoruba cultural record. Share your scholarship with the archive.</div>
+      <button class="upgrade-btn" onclick="openModal('submit-modal')">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Submit Research
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ═══ MAIN CONTENT ══════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- Top bar (notifications + avatar — right aligned) -->
+    <div class="top-bar">
+      <button class="top-bar-notif" id="notif-btn" style="display:none" onclick="toggleNotifPanel()" title="Notifications">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot" id="notif-dot" style="display:none"></span>
+      </button>
+      <div class="top-bar-avatar" id="top-avatar" style="display:none" onclick="toggleUserMenu()">?</div>
+      <button class="btn btn-ghost btn-sm" id="login-btn-top" onclick="openModal('login-modal')">Sign In</button>
+      <button class="btn btn-primary btn-sm" id="register-btn-top" onclick="openModal('register-modal')">Create Account</button>
+    </div>
+
+    <!-- ── HOME PAGE ─────────────────────────────────────── -->
+    <div class="page-view active" id="page-home">
+      <div class="main-header">
+        <div class="main-header-left">
+          <div class="page-title">Research Archive</div>
+          <div class="page-subtitle">Verified Yoruba cultural scholarship</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost btn-sm" onclick="navigate('requests')">Research Needs</button>
+          <button class="btn btn-primary btn-sm" onclick="navigate('archive')">Browse All</button>
+        </div>
+      </div>
+
+      <!-- Tab track -->
+      <div class="tab-track" id="home-tabs">
+        <div class="tab-item active" id="htab-verified" onclick="homeTab('verified', this)">
+          <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          Verified
+        </div>
+        <div class="tab-item" id="htab-pending" onclick="homeTab('pending', this)">
+          <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+          Pending Review
+        </div>
+        <div class="tab-item" id="htab-aggregated" onclick="homeTab('aggregated', this)">
+          <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></span>
+          Aggregated
+        </div>
+      </div>
+
+      <!-- Horizontal card row -->
+      <div class="cards-scroll-wrap">
+        <div class="cards-row" id="home-cards">
+          <div class="skeleton skeleton-card-wrap"></div>
+          <div class="skeleton skeleton-card-wrap"></div>
+          <div class="skeleton skeleton-card-wrap"></div>
+        </div>
+      </div>
+
+      <!-- Stats strip -->
+      <div style="display:flex;gap:32px;margin-top:40px;padding-top:28px;border-top:1px solid var(--border);flex-wrap:wrap">
+        <div>
+          <div style="font-size:28px;font-weight:500;letter-spacing:-0.5px;color:var(--text-0)" id="stat-verified">—</div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:2px">Verified Studies</div>
+        </div>
+        <div>
+          <div style="font-size:28px;font-weight:500;letter-spacing:-0.5px;color:var(--text-0)">6</div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:2px">Categories</div>
+        </div>
+        <div>
+          <div style="font-size:28px;font-weight:500;letter-spacing:-0.5px;color:var(--text-0)" id="stat-reqs">—</div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:2px">Research Needs</div>
+        </div>
+        <div>
+          <div style="font-size:28px;font-weight:500;letter-spacing:-0.5px;color:var(--text-0)">4</div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:2px">External Sources</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ARCHIVE PAGE ───────────────────────────────────── -->
+    <div class="page-view" id="page-archive">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Archive</div>
+          <div class="page-subtitle">Peer-reviewed Yoruba research</div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="archive-search" placeholder="Search titles, abstracts..." oninput="debounceSearch()" />
+      </div>
+
+      <div class="filter-row" id="category-filters">
+        <button class="filter-chip active" data-cat="" onclick="setFilter(this,'')">All Categories</button>
+      </div>
+      <div class="filter-row">
+        <button class="filter-chip active" data-src="" onclick="setSrcFilter(this,'')">All Sources</button>
+        <button class="filter-chip" data-src="contributed" onclick="setSrcFilter(this,'contributed')">Contributed</button>
+        <button class="filter-chip" data-src="aggregated" onclick="setSrcFilter(this,'aggregated')">Aggregated</button>
+      </div>
+
+      <div id="archive-grid" class="content-grid"></div>
+      <div class="pagination" id="archive-pagination"></div>
+    </div>
+
+    <!-- ── DETAIL PAGE ───────────────────────────────────── -->
+    <div class="page-view" id="page-detail">
+      <div class="detail-wrapper">
+        <div class="detail-back" onclick="goBack()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Back
+        </div>
+        <div class="detail-status-row" id="detail-status-row"></div>
         <h1 class="detail-title" id="detail-title"></h1>
-        <div class="detail-meta-row" id="detail-meta"></div>
+        <div class="detail-meta-strip" id="detail-meta"></div>
+        <div id="detail-body"></div>
       </div>
     </div>
-    <div class="detail-body">
-      <div class="detail-content" id="detail-body-content" style="max-width:860px;margin:0 auto"></div>
-    </div>
-  </div>
 
-  <!-- REQUESTS PAGE -->
-  <div class="page" id="page-requests">
-    <div class="container">
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">🔬 Research Needs</div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('request-modal')">+ Submit Request</button>
+    <!-- ── REQUESTS PAGE ─────────────────────────────────── -->
+    <div class="page-view" id="page-requests">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Research Needs</div>
+          <div class="page-subtitle">Vote on what Yoruba scholarship to prioritize</div>
         </div>
-        <p style="color:var(--text-2);font-size:0.875rem;margin-bottom:1.5rem">
-          Vote on what Yoruba research gaps matter most. Highly-voted requests get prioritized by the curator network.
-        </p>
-        <div class="filter-row">
-          <button class="filter-chip active" data-req-status="" onclick="setReqFilter(this,'')">All</button>
-          <button class="filter-chip" data-req-status="open" onclick="setReqFilter(this,'open')">Open</button>
-          <button class="filter-chip" data-req-status="prioritized" onclick="setReqFilter(this,'prioritized')">Prioritized</button>
-          <button class="filter-chip" data-req-status="addressed" onclick="setReqFilter(this,'addressed')">Addressed</button>
-        </div>
-        <div id="requests-list" class="requests-list"></div>
-        <div class="pagination" id="requests-pagination"></div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('request-modal')">+ Submit Request</button>
       </div>
+      <div class="filter-row">
+        <button class="filter-chip active" data-req-status="" onclick="setReqFilter(this,'')">All</button>
+        <button class="filter-chip" data-req-status="open" onclick="setReqFilter(this,'open')">Open</button>
+        <button class="filter-chip" data-req-status="prioritized" onclick="setReqFilter(this,'prioritized')">Prioritized</button>
+        <button class="filter-chip" data-req-status="addressed" onclick="setReqFilter(this,'addressed')">Addressed</button>
+      </div>
+      <div id="requests-list" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div class="pagination" id="requests-pagination"></div>
     </div>
-  </div>
 
-  <!-- ADMIN PAGE -->
-  <div class="page" id="page-admin">
-    <div class="container">
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">🛡 Admin Dashboard</div>
-        </div>
-        <div class="tabs">
-          <div class="tab active" id="tab-overview" onclick="adminTab('overview')">Overview</div>
-          <div class="tab" id="tab-review" onclick="adminTab('review')">Review Queue</div>
-          <div class="tab" id="tab-users" onclick="adminTab('users')">Users</div>
-          <div class="tab" id="tab-sources" onclick="adminTab('sources')">Sources</div>
-        </div>
-
-        <div id="admin-overview">
-          <div class="dash-grid" id="dash-stats"></div>
-          <div class="section-title" style="margin-bottom:1rem">Submissions by Category</div>
-          <div id="cat-breakdown"></div>
-        </div>
-
-        <div id="admin-review" style="display:none">
-          <div id="review-queue"></div>
-        </div>
-
-        <div id="admin-users" style="display:none">
-          <div style="overflow-x:auto"><table class="admin-table" id="users-table"></table></div>
-        </div>
-
-        <div id="admin-sources" style="display:none">
-          <div class="grid-2" id="sources-grid"></div>
+    <!-- ── ADMIN PAGE ────────────────────────────────────── -->
+    <div class="page-view" id="page-admin">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Admin Dashboard</div>
+          <div class="page-subtitle">Repository management & oversight</div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- MY SUBMISSIONS -->
-  <div class="page" id="page-my-submissions">
-    <div class="container">
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">📄 My Submissions</div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('submit-modal')">+ Submit Research</button>
+      <div class="tab-track" style="margin-bottom:28px">
+        <div class="tab-item active" id="atab-overview" onclick="adminTab('overview')">
+          <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          Overview
         </div>
-        <div id="my-subs-grid" class="grid-2"></div>
+        <div class="tab-item" id="atab-review" onclick="adminTab('review')">
+          <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+          Review Queue
+        </div>
+        <div class="tab-item" id="atab-users" onclick="adminTab('users')">
+          <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          Users
+        </div>
+        <div class="tab-item" id="atab-sources" onclick="adminTab('sources')">
+          <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+          Sources
+        </div>
       </div>
+
+      <div id="admin-overview"></div>
+      <div id="admin-review" style="display:none"></div>
+      <div id="admin-users" style="display:none"></div>
+      <div id="admin-sources" style="display:none"></div>
     </div>
-  </div>
 
-  <!-- MODALS -->
-
-  <div class="modal-overlay" id="login-modal" onclick="closeModalOnBg(event, 'login-modal')">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Sign In</div>
-        <button class="modal-close" onclick="closeModal('login-modal')">✕</button>
+    <!-- ── MY SUBMISSIONS ────────────────────────────────── -->
+    <div class="page-view" id="page-my-submissions">
+      <div class="main-header">
+        <div>
+          <div class="page-title">My Submissions</div>
+          <div class="page-subtitle">Your contributed research</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('submit-modal')">+ Submit Research</button>
       </div>
-      <form onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label class="form-label" for="login-email">Email</label>
-          <input class="form-input" type="email" id="login-email" placeholder="your@email.com" required />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="login-password">Password</label>
-          <input class="form-input" type="password" id="login-password" placeholder="••••••••" required />
-        </div>
-        <div class="form-error" id="login-error"></div>
-        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Sign In</button>
-        <p style="text-align:center;margin-top:1rem;font-size:0.8rem;color:var(--text-2)">
-          No account? <span style="color:var(--gold);cursor:pointer" onclick="closeModal('login-modal');openModal('register-modal')">Create one</span>
-        </p>
-      </form>
+      <div id="my-subs-grid" class="content-grid"></div>
     </div>
-  </div>
 
-  <div class="modal-overlay" id="register-modal" onclick="closeModalOnBg(event, 'register-modal')">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Create Account</div>
-        <button class="modal-close" onclick="closeModal('register-modal')">✕</button>
-      </div>
-      <form onsubmit="handleRegister(event)">
-        <div class="form-group">
-          <label class="form-label" for="reg-name">Full Name</label>
-          <input class="form-input" type="text" id="reg-name" placeholder="Dr. Amina Okafor" required />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="reg-email">Email</label>
-          <input class="form-input" type="email" id="reg-email" required />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="reg-institution">Institution / Affiliation</label>
-          <input class="form-input" type="text" id="reg-institution" placeholder="University of Lagos" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="reg-role">Account Type</label>
-          <select class="form-select" id="reg-role">
-            <option value="public">Public (Browser)</option>
-            <option value="researcher">Researcher (Can submit)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="reg-password">Password</label>
-          <input class="form-input" type="password" id="reg-password" placeholder="Min 6 characters" required minlength="6" />
-        </div>
-        <div class="form-error" id="reg-error"></div>
-        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Create Account</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="submit-modal" onclick="closeModalOnBg(event, 'submit-modal')">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Submit Research</div>
-        <button class="modal-close" onclick="closeModal('submit-modal')">✕</button>
-      </div>
-      <form onsubmit="handleSubmit(event)" enctype="multipart/form-data">
-        <div class="form-group">
-          <label class="form-label" for="sub-title">Title</label>
-          <input class="form-input" type="text" id="sub-title" placeholder="Enter research title..." required />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="sub-category">Category</label>
-          <select class="form-select" id="sub-category" required></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="sub-abstract">Abstract</label>
-          <textarea class="form-textarea" id="sub-abstract" rows="5" placeholder="Describe the research, its methodology, findings, and cultural significance..." required></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Attach File (optional — PDF, image, audio, video)</label>
-          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('sub-file').click()">
-            <input type="file" id="sub-file" accept=".pdf,image/*,audio/*,video/*" onchange="onFileSelect(event)" />
-            <div id="upload-label">📎 Click to attach a file (max 25MB)</div>
-          </div>
-        </div>
-        <div class="form-error" id="submit-error"></div>
-        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Submit for Peer Review</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="request-modal" onclick="closeModalOnBg(event, 'request-modal')">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Submit Research Request</div>
-        <button class="modal-close" onclick="closeModal('request-modal')">✕</button>
-      </div>
-      <form onsubmit="handleRequest(event)">
-        <div class="form-group">
-          <label class="form-label" for="req-topic">Research Topic</label>
-          <input class="form-input" type="text" id="req-topic" placeholder="e.g., Pre-colonial iron smelting in Oyo" required />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="req-desc">Why is this important?</label>
-          <textarea class="form-textarea" id="req-desc" rows="4" placeholder="Explain the cultural gap, urgency, or potential impact..." required></textarea>
-        </div>
-        <div class="form-error" id="req-error"></div>
-        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Submit Request</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="review-modal" onclick="closeModalOnBg(event, 'review-modal')">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Peer Review Decision</div>
-        <button class="modal-close" onclick="closeModal('review-modal')">✕</button>
-      </div>
-      <form onsubmit="handleReview(event)">
-        <input type="hidden" id="review-sub-id" />
-        <div class="form-group">
-          <label class="form-label">Decision</label>
-          <select class="form-select" id="review-decision">
-            <option value="verified">✅ Verify & Publish</option>
-            <option value="revision_requested">✏️ Request Revision</option>
-            <option value="rejected">❌ Reject</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="review-comments">Comments (optional)</label>
-          <textarea class="form-textarea" id="review-comments" rows="4" placeholder="Notes for the author..."></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%">Submit Decision</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="toast-container" id="toast-container"></div>
+  </main>
 </div>
 
+<!-- ═══ DROPDOWNS ════════════════════════════════════════════ -->
+
+<div class="notif-panel" id="notif-panel"></div>
+
+<div class="user-menu-popup" id="user-menu">
+  <div class="user-menu-head">
+    <div class="user-menu-name" id="menu-name"></div>
+    <div class="user-menu-role" id="menu-role"></div>
+  </div>
+  <div class="user-menu-item" onclick="navigate('my-submissions');toggleUserMenu()">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    My Submissions
+  </div>
+  <div class="user-menu-item danger" onclick="logout()">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Sign Out
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══════════════════════════════════════════════ -->
+
+<div class="modal-overlay" id="login-modal" onclick="closeModalOnBg(event,'login-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Sign In</div>
+      <button class="modal-close" onclick="closeModal('login-modal')">✕</button>
+    </div>
+    <form onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label" for="login-email">Email address</label>
+        <input class="form-input" type="email" id="login-email" placeholder="you@university.edu" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="login-password">Password</label>
+        <input class="form-input" type="password" id="login-password" placeholder="••••••••" required />
+      </div>
+      <div class="form-error" id="login-error"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center">Sign In</button>
+      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-2)">
+        No account? <span style="color:var(--accent);cursor:pointer" onclick="closeModal('login-modal');openModal('register-modal')">Create one →</span>
+      </p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="register-modal" onclick="closeModalOnBg(event,'register-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create Account</div>
+      <button class="modal-close" onclick="closeModal('register-modal')">✕</button>
+    </div>
+    <form onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label class="form-label" for="reg-name">Full name</label>
+        <input class="form-input" type="text" id="reg-name" placeholder="Dr. Amina Okafor" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reg-email">Email</label>
+        <input class="form-input" type="email" id="reg-email" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reg-institution">Institution / Affiliation</label>
+        <input class="form-input" type="text" id="reg-institution" placeholder="University of Lagos" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reg-role">Account type</label>
+        <select class="form-select" id="reg-role">
+          <option value="public">Public — Browse only</option>
+          <option value="researcher">Researcher — Can submit</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reg-password">Password</label>
+        <input class="form-input" type="password" id="reg-password" placeholder="Min 6 characters" required minlength="6" />
+      </div>
+      <div class="form-error" id="reg-error"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="submit-modal" onclick="closeModalOnBg(event,'submit-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Submit Research</div>
+      <button class="modal-close" onclick="closeModal('submit-modal')">✕</button>
+    </div>
+    <form onsubmit="handleSubmit(event)">
+      <div class="form-group">
+        <label class="form-label" for="sub-title">Title</label>
+        <input class="form-input" type="text" id="sub-title" placeholder="Research paper title..." required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="sub-category">Category</label>
+        <select class="form-select" id="sub-category" required></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="sub-abstract">Abstract</label>
+        <textarea class="form-textarea" id="sub-abstract" rows="4" placeholder="Summarise the research, methodology, and cultural significance..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Attach file (PDF, image, audio, video — max 25 MB)</label>
+        <div class="upload-zone" onclick="document.getElementById('sub-file').click()">
+          <input type="file" id="sub-file" accept=".pdf,image/*,audio/*,video/*" onchange="onFileSelect(event)" />
+          <div id="upload-label">Click to browse or drag a file here</div>
+        </div>
+      </div>
+      <div class="form-error" id="submit-error"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center">Submit for Peer Review</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="request-modal" onclick="closeModalOnBg(event,'request-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Submit Research Request</div>
+      <button class="modal-close" onclick="closeModal('request-modal')">✕</button>
+    </div>
+    <form onsubmit="handleRequest(event)">
+      <div class="form-group">
+        <label class="form-label" for="req-topic">Topic</label>
+        <input class="form-input" type="text" id="req-topic" placeholder="e.g. Pre-colonial iron smelting in Oyo" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="req-desc">Why is this important?</label>
+        <textarea class="form-textarea" id="req-desc" rows="4" placeholder="Explain the gap, urgency, or cultural significance..." required></textarea>
+      </div>
+      <div class="form-error" id="req-error"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center">Submit Request</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="review-modal" onclick="closeModalOnBg(event,'review-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Peer Review Decision</div>
+      <button class="modal-close" onclick="closeModal('review-modal')">✕</button>
+    </div>
+    <form onsubmit="handleReview(event)">
+      <input type="hidden" id="review-sub-id" />
+      <div class="form-group">
+        <label class="form-label">Decision</label>
+        <select class="form-select" id="review-decision">
+          <option value="verified">Verify & Publish</option>
+          <option value="revision_requested">Request Revision</option>
+          <option value="rejected">Reject</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="review-comments">Comments for author</label>
+        <textarea class="form-textarea" id="review-comments" rows="4" placeholder="Feedback, notes, or justification..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Submit Decision</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
 <script src="app.js"></script>
 </body>
 </html>

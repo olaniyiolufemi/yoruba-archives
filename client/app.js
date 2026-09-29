@@ -1,5 +1,23 @@
 const API = '/api';
 
+const catIcons = {
+  'Art & Sculpture': '🏺',
+  'Linguistics & Orthography': '🔤',
+  'Cosmology & Philosophy': '☽',
+  'Historical Monarchies & Wars': '⚔️',
+  'Musical Traditions & Oral Poetry': '🥁',
+  'Indigenous Medicine & Botany': '🌿'
+};
+
+const catColors = {
+  1: { bg: '#f0ece4', accent: '#c4a882' },
+  2: { bg: '#e8f0f8', accent: '#4a7cb5' },
+  3: { bg: '#f0e8f8', accent: '#8a5db8' },
+  4: { bg: '#f8ece8', accent: '#c4623a' },
+  5: { bg: '#e8f8ee', accent: '#3a9c6e' },
+  6: { bg: '#eef8e8', accent: '#5a9c3a' }
+};
+
 let state = {
   user: null,
   token: null,
@@ -11,25 +29,14 @@ let state = {
   archiveSrc: '',
   reqStatus: '',
   reqPage: 1,
-  debounceTimer: null,
-  notifications: []
-};
-
-const catIcons = {
-  'Art & Sculpture': '🏺',
-  'Linguistics & Orthography': '🔤',
-  'Cosmology & Philosophy': '☽',
-  'Historical Monarchies & Wars': '⚔️',
-  'Musical Traditions & Oral Poetry': '🥁',
-  'Indigenous Medicine & Botany': '🌿'
+  homeTab: 'verified',
+  debounceTimer: null
 };
 
 function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = {};
   if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-  if (opts.formData) {
-    delete headers['Content-Type'];
-  }
+  if (!opts.formData) headers['Content-Type'] = 'application/json';
   return fetch(`${API}${path}`, {
     ...opts,
     headers: opts.formData ? { 'Authorization': `Bearer ${state.token}` } : headers,
@@ -58,41 +65,86 @@ function clearSession() {
 function loadSession() {
   const t = localStorage.getItem('ya_token');
   const u = localStorage.getItem('ya_user');
-  if (t && u) {
-    state.token = t;
-    state.user = JSON.parse(u);
-    return true;
-  }
+  if (t && u) { state.token = t; state.user = JSON.parse(u); return true; }
   return false;
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function relTime(ts) {
+  const diff = Date.now() - new Date(ts).getTime();
+  const d = Math.floor(diff / 86400000);
+  if (d === 0) return 'Today';
+  if (d === 1) return 'Yesterday';
+  if (d < 30) return `${d}d ago`;
+  const m = Math.floor(d / 30);
+  return m < 12 ? `${m}mo ago` : `${Math.floor(m / 12)}y ago`;
+}
+
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function statusPill(s) {
+  const map = {
+    verified: ['status-verified', 'Active'],
+    pending: ['status-pending', 'Pending'],
+    rejected: ['status-rejected', 'Rejected'],
+    revision_requested: ['status-revision_requested', 'Revision']
+  };
+  const [cls, label] = map[s] || ['status-pending', s];
+  return `<span class="status-pill ${cls}">${label}</span>`;
+}
+
+function initials(name) {
+  return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
 function updateNav() {
   const u = state.user;
-  const loginBtn = document.getElementById('login-btn');
-  const registerBtn = document.getElementById('register-btn');
-  const submitBtn = document.getElementById('submit-btn');
+  const loginBtnTop = document.getElementById('login-btn-top');
+  const registerBtnTop = document.getElementById('register-btn-top');
   const notifBtn = document.getElementById('notif-btn');
-  const avatar = document.getElementById('user-avatar');
+  const topAvatar = document.getElementById('top-avatar');
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  const sidebarName = document.getElementById('sidebar-name');
+  const sidebarRole = document.getElementById('sidebar-role');
   const adminLink = document.getElementById('nav-admin');
+  const mySubLink = document.getElementById('nav-my-submissions');
+  const loginLink = document.getElementById('sidebar-login');
+  const logoutLink = document.getElementById('sidebar-logout');
 
   if (u) {
-    loginBtn.style.display = 'none';
-    registerBtn.style.display = 'none';
-    submitBtn.style.display = u.role === 'researcher' || u.role === 'admin' ? 'flex' : 'none';
+    loginBtnTop.style.display = 'none';
+    registerBtnTop.style.display = 'none';
     notifBtn.style.display = 'flex';
-    avatar.style.display = 'flex';
-    avatar.textContent = u.name.charAt(0).toUpperCase();
+    topAvatar.style.display = 'flex';
+    topAvatar.textContent = initials(u.name);
+    sidebarAvatar.textContent = initials(u.name);
+    sidebarName.textContent = u.name;
+    sidebarRole.textContent = u.role.charAt(0).toUpperCase() + u.role.slice(1) + ' Account';
     document.getElementById('menu-name').textContent = u.name;
     document.getElementById('menu-role').textContent = u.role;
-    adminLink.style.display = (u.role === 'admin' || u.role === 'reviewer') ? 'inline-flex' : 'none';
+    adminLink.style.display = (u.role === 'admin' || u.role === 'reviewer') ? 'flex' : 'none';
+    mySubLink.style.display = 'flex';
+    loginLink.style.display = 'none';
+    logoutLink.style.display = 'flex';
     fetchNotifications();
   } else {
-    loginBtn.style.display = 'flex';
-    registerBtn.style.display = 'flex';
-    submitBtn.style.display = 'none';
+    loginBtnTop.style.display = 'flex';
+    registerBtnTop.style.display = 'flex';
     notifBtn.style.display = 'none';
-    avatar.style.display = 'none';
+    topAvatar.style.display = 'none';
+    sidebarAvatar.textContent = '?';
+    sidebarName.textContent = 'Sign In';
+    sidebarRole.textContent = 'Guest';
     adminLink.style.display = 'none';
+    mySubLink.style.display = 'none';
+    loginLink.style.display = 'flex';
+    logoutLink.style.display = 'none';
   }
 }
 
@@ -100,8 +152,8 @@ function navigate(page, data) {
   state.prevPage = state.currentPage;
   state.currentPage = page;
 
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item[id^="nav-"]').forEach(l => l.classList.remove('active'));
 
   const el = document.getElementById(`page-${page}`);
   if (el) el.classList.add('active');
@@ -112,7 +164,7 @@ function navigate(page, data) {
   closeAllDropdowns();
 
   if (page === 'home') loadHome();
-  else if (page === 'archive') loadArchive();
+  else if (page === 'archive') { state.archiveCat = data || state.archiveCat; loadArchive(); }
   else if (page === 'requests') loadRequests();
   else if (page === 'admin') loadAdmin();
   else if (page === 'my-submissions') loadMySubmissions();
@@ -121,27 +173,20 @@ function navigate(page, data) {
   window.scrollTo(0, 0);
 }
 
-function goBack() {
-  navigate(state.prevPage || 'archive');
-}
+function goBack() { navigate(state.prevPage || 'archive'); }
 
 function openModal(id) {
   if ((id === 'submit-modal' || id === 'request-modal') && !state.user) {
-    toast('Please sign in first.', 'info');
+    toast('Please sign in first', 'info');
     openModal('login-modal');
     return;
   }
+  if (id === 'submit-modal') loadCatsToForm();
   document.getElementById(id).classList.add('open');
-  if (id === 'submit-modal') loadCategoriesToForm();
 }
 
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-function closeModalOnBg(e, id) {
-  if (e.target === e.currentTarget) closeModal(id);
-}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOnBg(e, id) { if (e.target === e.currentTarget) closeModal(id); }
 
 function closeAllDropdowns() {
   document.getElementById('notif-panel').classList.remove('open');
@@ -158,82 +203,170 @@ function toggleUserMenu() {
   document.getElementById('user-menu').classList.toggle('open');
 }
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', e => {
   const np = document.getElementById('notif-panel');
   const um = document.getElementById('user-menu');
   const nb = document.getElementById('notif-btn');
-  const av = document.getElementById('user-avatar');
+  const ta = document.getElementById('top-avatar');
+  const sa = document.getElementById('account-switcher');
   if (!np.contains(e.target) && e.target !== nb) np.classList.remove('open');
-  if (!um.contains(e.target) && e.target !== av) um.classList.remove('open');
+  if (!um.contains(e.target) && e.target !== ta && e.target !== sa) um.classList.remove('open');
 });
 
 function toast(msg, type = 'info') {
   const c = document.getElementById('toast-container');
   const div = document.createElement('div');
   div.className = `toast toast-${type}`;
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  div.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
+  const icons = { success: '✓', error: '✕', info: 'i' };
+  div.innerHTML = `<span style="width:16px;height:16px;border-radius:50%;background:${type==='success'?'var(--green)':type==='error'?'#DC2626':'var(--accent)'};color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${icons[type]}</span><span>${msg}</span>`;
   c.appendChild(div);
   setTimeout(() => div.remove(), 4000);
 }
 
-function statusBadge(s) {
-  const labels = { verified: 'Verified', pending: 'Pending', rejected: 'Rejected', revision_requested: 'Revision' };
-  return `<span class="status-badge status-${s}">${labels[s] || s}</span>`;
+function buildCard(s) {
+  const col = catColors[s.category_id] || { bg: '#f4f4f6', accent: '#7A7A82' };
+  const icon = catIcons[s.category_name] || '📄';
+  const srcTag = s.source_type === 'aggregated' ? `<span class="proj-tag">External source</span>` : '';
+  return `
+    <div class="proj-card" onclick="navigate('detail','${s.submission_id}')">
+      <div class="proj-card-inner">
+        <div class="proj-card-header">
+          <div class="proj-client">
+            <div class="proj-client-logo" style="background:linear-gradient(135deg,${col.accent},${col.bg})">${icon}</div>
+            <div>
+              <div class="proj-client-name">${esc(s.author_name)}</div>
+              <div class="proj-client-date">${fmtDate(s.created_at)}</div>
+            </div>
+          </div>
+          <div class="proj-header-right">
+            ${statusPill(s.status)}
+            <button class="more-btn" onclick="event.stopPropagation()">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="proj-img-wrap">
+          <div class="proj-img-placeholder" style="background:linear-gradient(135deg,${col.bg},${adjustHex(col.bg, -15)})">${icon}</div>
+        </div>
+      </div>
+      <div class="proj-card-body">
+        <div class="proj-title">${esc(s.title)}</div>
+        <div class="proj-tags">
+          <span class="proj-tag">${esc(s.category_name)}</span>
+          ${srcTag}
+          ${s.institution ? `<span class="proj-tag">${esc(s.institution.split(' ').slice(-2).join(' '))}</span>` : ''}
+        </div>
+        <div class="proj-meta">
+          <div class="proj-meta-row">
+            <span class="proj-meta-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+            ${s.source_type === 'aggregated' ? 'Aggregated source' : 'Contributed research'}
+          </div>
+          ${s.file_name ? `<div class="proj-meta-row">
+            <span class="proj-meta-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </span>
+            ${esc(s.file_name)}
+          </div>` : ''}
+          <div class="proj-meta-row">
+            <span class="proj-meta-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            Added ${relTime(s.created_at)}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
-function relTime(ts) {
-  const d = new Date(ts);
-  const diff = Date.now() - d.getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
+function adjustHex(hex, amount) {
+  const r = Math.max(0, Math.min(255, parseInt(hex.slice(1,3),16) + amount));
+  const g = Math.max(0, Math.min(255, parseInt(hex.slice(3,5),16) + amount));
+  const b = Math.max(0, Math.min(255, parseInt(hex.slice(5,7),16) + amount));
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+function buildArchiveCard(s) {
+  const col = catColors[s.category_id] || { bg: '#f4f4f6', accent: '#7A7A82' };
+  const icon = catIcons[s.category_name] || '📄';
+  return `
+    <div class="proj-card" onclick="navigate('detail','${s.submission_id}')">
+      <div class="proj-card-inner">
+        <div class="proj-card-header">
+          <div class="proj-client">
+            <div class="proj-client-logo" style="background:linear-gradient(135deg,${col.accent},${col.bg})">${icon}</div>
+            <div>
+              <div class="proj-client-name">${esc(s.author_name)}</div>
+              <div class="proj-client-date">${fmtDate(s.created_at)}</div>
+            </div>
+          </div>
+          <div class="proj-header-right">
+            ${statusPill(s.status)}
+          </div>
+        </div>
+        <div class="proj-img-wrap">
+          <div class="proj-img-placeholder" style="background:linear-gradient(135deg,${col.bg},${adjustHex(col.bg,-15)})">${icon}</div>
+        </div>
+      </div>
+      <div class="proj-card-body">
+        <div class="proj-title">${esc(s.title)}</div>
+        <div class="proj-tags">
+          <span class="proj-tag">${esc(s.category_name)}</span>
+          ${s.source_type === 'aggregated' ? '<span class="proj-tag">Aggregated</span>' : ''}
+        </div>
+        <div class="proj-meta">
+          <div class="proj-meta-row">
+            <span class="proj-meta-icon" style="width:14px;height:14px;font-size:11px">📝</span>
+            <span style="-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;color:var(--text-2)">${esc(s.abstract.slice(0,120))}…</span>
+          </div>
+          <div class="proj-meta-row">
+            <span class="proj-meta-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            ${relTime(s.created_at)}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 async function loadHome() {
+  const row = document.getElementById('home-cards');
+  row.innerHTML = `
+    <div class="skeleton skeleton-card-wrap"></div>
+    <div class="skeleton skeleton-card-wrap"></div>
+    <div class="skeleton skeleton-card-wrap"></div>
+  `;
   try {
     const [subsData, reqData] = await Promise.all([
-      api('/submissions?limit=6&status=verified'),
+      api(`/submissions?limit=8${state.homeTab === 'aggregated' ? '&source_type=aggregated' : state.homeTab === 'pending' ? '&status=pending' : '&status=verified'}`),
       api('/requests?limit=3')
     ]);
 
-    document.getElementById('stat-subs').textContent = subsData.total || '—';
-    document.getElementById('stat-reqs').textContent = reqData.total || '—';
+    document.getElementById('stat-verified').textContent = subsData.total;
+    document.getElementById('stat-reqs').textContent = reqData.total;
 
-    const strip = document.getElementById('featured-strip');
     if (subsData.submissions.length) {
-      strip.innerHTML = subsData.submissions.map(s => `
-        <div class="featured-card" onclick="navigate('detail', '${s.submission_id}')">
-          <div class="featured-card-cat">${catIcons[s.category_name] || '📄'} ${s.category_name}</div>
-          <div class="featured-card-title">${escHtml(s.title)}</div>
-          <div class="featured-card-author">by ${escHtml(s.author_name)}</div>
-        </div>
-      `).join('');
+      row.innerHTML = subsData.submissions.map(s => buildCard(s)).join('');
     } else {
-      strip.innerHTML = '<p style="color:var(--text-2)">No verified research yet.</p>';
+      row.innerHTML = `<div class="empty-state" style="width:100%"><div class="empty-icon">📂</div><div class="empty-title">No research found</div><div class="empty-body">Be the first to submit in this category.</div></div>`;
     }
-
-    const cats = await api('/submissions/categories');
-    const catGrid = document.getElementById('home-categories');
-    catGrid.innerHTML = cats.map(c => `
-      <div class="category-tile" onclick="navigate('archive');state.archiveCat='${c.category_id}';loadArchive()">
-        <div class="category-tile-icon">${catIcons[c.category_name] || '📖'}</div>
-        <div class="category-tile-name">${escHtml(c.category_name)}</div>
-      </div>
-    `).join('');
-
-    const reqs = document.getElementById('home-requests');
-    reqs.innerHTML = reqData.requests.map(r => buildRequestCard(r)).join('');
   } catch (err) {
-    console.error(err);
+    row.innerHTML = `<div class="empty-state" style="width:100%"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load</div></div>`;
   }
 }
 
-async function loadCategoriesToForm() {
+function homeTab(tab, el) {
+  document.querySelectorAll('#home-tabs .tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  state.homeTab = tab;
+  loadHome();
+}
+
+async function loadCatsToForm() {
   try {
     const cats = await api('/submissions/categories');
     const sel = document.getElementById('sub-category');
@@ -243,13 +376,16 @@ async function loadCategoriesToForm() {
 
 async function loadArchive() {
   const grid = document.getElementById('archive-grid');
-  grid.innerHTML = '<div class="loading-cards"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div>';
+  grid.innerHTML = `
+    <div class="skeleton" style="height:380px;border-radius:var(--radius-card)"></div>
+    <div class="skeleton" style="height:380px;border-radius:var(--radius-card)"></div>
+    <div class="skeleton" style="height:380px;border-radius:var(--radius-card)"></div>
+  `;
 
   try {
     const cats = await api('/submissions/categories');
     const filterRow = document.getElementById('category-filters');
-    const existing = filterRow.querySelectorAll('[data-cat]');
-    if (existing.length === 1) {
+    if (filterRow.querySelectorAll('[data-cat]').length === 1) {
       cats.forEach(c => {
         const btn = document.createElement('button');
         btn.className = 'filter-chip';
@@ -260,103 +396,107 @@ async function loadArchive() {
       });
     }
 
-    let url = `/submissions?page=${state.archivePage}&limit=12`;
+    let url = `/submissions?page=${state.archivePage}&limit=9`;
     if (state.archiveSearch) url += `&q=${encodeURIComponent(state.archiveSearch)}`;
     if (state.archiveCat) url += `&category=${state.archiveCat}`;
     if (state.archiveSrc) url += `&source_type=${state.archiveSrc}`;
 
     const data = await api(url);
     grid.innerHTML = data.submissions.length
-      ? data.submissions.map(s => buildSubmissionCard(s)).join('')
-      : '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No results found</div><p>Try adjusting your filters or search term.</p></div>';
+      ? data.submissions.map(s => buildArchiveCard(s)).join('')
+      : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">No results</div><div class="empty-body">Try adjusting your filters or search term.</div></div>`;
 
-    buildPagination('archive-pagination', data.page, data.pages, (p) => { state.archivePage = p; loadArchive(); });
+    buildPagination('archive-pagination', data.page, data.pages, p => { state.archivePage = p; loadArchive(); });
   } catch (err) {
-    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load archive</div></div>';
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load archive</div></div>`;
   }
 }
 
-function buildSubmissionCard(s) {
-  const srcTag = s.source_type === 'aggregated'
-    ? `<span class="source-tag">🔗 Aggregated</span>`
-    : '';
-  return `
-    <div class="card" onclick="navigate('detail','${s.submission_id}')">
-      <div class="card-meta">
-        <span class="card-category">${catIcons[s.category_name] || ''} ${escHtml(s.category_name)}</span>
-        ${statusBadge(s.status)}
-      </div>
-      <div class="card-title">${escHtml(s.title)}</div>
-      <div class="card-abstract">${escHtml(s.abstract)}</div>
-      <div class="card-footer">
-        <div class="card-author">
-          <strong>${escHtml(s.author_name)}</strong><br>
-          <span>${escHtml(s.institution || '')}</span>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.3rem">
-          ${srcTag}
-          <span style="font-size:0.72rem;color:var(--text-2)">${relTime(s.created_at)}</span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 async function loadDetail(id) {
+  const row = document.getElementById('detail-status-row');
+  const titleEl = document.getElementById('detail-title');
+  const metaEl = document.getElementById('detail-meta');
+  const bodyEl = document.getElementById('detail-body');
+
+  row.innerHTML = '';
+  titleEl.textContent = 'Loading...';
+  metaEl.innerHTML = '';
+  bodyEl.innerHTML = '';
+
   try {
     const s = await api(`/submissions/${id}`);
-    document.getElementById('detail-category').innerHTML = `<span class="card-category">${catIcons[s.category_name] || ''} ${escHtml(s.category_name)}</span> ${statusBadge(s.status)}`;
-    document.getElementById('detail-title').textContent = s.title;
-    document.getElementById('detail-meta').innerHTML = `
-      <span class="meta-item">👤 ${escHtml(s.author_name)}</span>
-      <span class="meta-item">🏛 ${escHtml(s.institution || 'Independent')}</span>
-      <span class="meta-item">📅 ${new Date(s.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-      ${s.source_type === 'aggregated' ? `<span class="source-tag">🔗 Aggregated Source</span>` : ''}
+    const col = catColors[s.category_id] || { bg: '#f4f4f6', accent: '#7A7A82' };
+    const icon = catIcons[s.category_name] || '📄';
+
+    row.innerHTML = `
+      <span class="cat-pill">${icon} ${esc(s.category_name)}</span>
+      ${statusPill(s.status)}
+      ${s.source_type === 'aggregated' ? '<span class="proj-tag" style="border:1px solid var(--border);padding:4px 12px;border-radius:999px;font-size:11px;color:var(--text-1)">Aggregated</span>' : ''}
+    `;
+    titleEl.textContent = s.title;
+    metaEl.innerHTML = `
+      <div class="detail-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        ${esc(s.author_name)}
+      </div>
+      ${s.institution ? `<div class="detail-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        ${esc(s.institution)}
+      </div>` : ''}
+      <div class="detail-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        ${fmtDate(s.created_at)}
+      </div>
     `;
 
-    let fileSection = '';
+    let fileHtml = '';
     if (s.file_url) {
-      const isImg = s.file_type && s.file_type.startsWith('image/');
-      const icon = s.file_type === 'application/pdf' ? '📄' : isImg ? '🖼' : s.file_type?.startsWith('audio') ? '🎵' : s.file_type?.startsWith('video') ? '🎬' : '📎';
-      fileSection = `
-        <div class="file-preview">
-          <div class="file-icon">${icon}</div>
-          <div class="file-info">
-            <div class="file-name">${escHtml(s.file_name || 'Attached File')}</div>
-            <div class="file-type">${s.file_type || ''}</div>
+      const icons = { 'application/pdf': '📄', 'image/jpeg': '🖼', 'image/png': '🖼', 'audio/mpeg': '🎵', 'video/mp4': '🎬' };
+      const ico = icons[s.file_type] || '📎';
+      fileHtml = `
+        <div class="file-card">
+          <div class="file-card-icon">${ico}</div>
+          <div style="flex:1">
+            <div class="file-card-name">${esc(s.file_name || 'Attached file')}</div>
+            <div class="file-card-type">${esc(s.file_type || '')}</div>
           </div>
-          <a class="btn btn-ghost btn-sm" href="${s.file_url}" target="_blank" rel="noopener">Download</a>
+          <a class="btn btn-ghost btn-sm" href="${esc(s.file_url)}" target="_blank" rel="noopener">Download</a>
         </div>
       `;
     }
 
-    const shareUrl = `${location.origin}/share/${s.shareable_link}`;
+    const shareUrl = `${location.origin}/?share=${encodeURIComponent(s.shareable_link)}`;
 
-    let reviewSection = '';
+    let reviewHtml = '';
     if (state.user && (state.user.role === 'reviewer' || state.user.role === 'admin') && s.status === 'pending') {
-      reviewSection = `
-        <div class="review-panel">
-          <div class="review-panel-title">🔬 Reviewer Action</div>
-          <button class="btn btn-primary" onclick="openReviewModal('${s.submission_id}')">Submit Decision</button>
+      reviewHtml = `
+        <div class="review-action-card">
+          <div>
+            <div class="review-action-label">Peer Review Required</div>
+            <div class="review-action-sub">This submission is awaiting your decision.</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openReviewModal('${s.submission_id}')">Submit Decision</button>
         </div>
       `;
     }
 
-    document.getElementById('detail-body-content').innerHTML = `
-      <div class="abstract-block">
-        <strong style="display:block;margin-bottom:0.5rem;font-size:0.8rem;letter-spacing:0.04em;color:var(--text-2);text-transform:uppercase">Abstract</strong>
-        ${escHtml(s.abstract)}
+    bodyEl.innerHTML = `
+      <div class="abstract-card">
+        <div class="abstract-label">Abstract</div>
+        ${esc(s.abstract)}
       </div>
-      ${fileSection}
-      <div class="section-title" style="font-size:1rem;margin-bottom:0.75rem">🔗 Shareable Link</div>
-      <div class="share-box">
-        <div class="share-url" id="share-url-text">${shareUrl}</div>
+      ${fileHtml}
+      <div class="share-card">
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500;color:var(--text-1);margin-bottom:6px">Shareable Link</div>
+          <div class="share-url-box" id="share-url-box">${shareUrl}</div>
+        </div>
         <button class="btn btn-ghost btn-sm" onclick="copyShare('${shareUrl}')">Copy</button>
       </div>
-      ${reviewSection}
+      ${reviewHtml}
     `;
-  } catch (err) {
-    document.getElementById('detail-body-content').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load submission</div></div>';
+  } catch (_) {
+    bodyEl.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load submission</div></div>`;
   }
 }
 
@@ -369,22 +509,22 @@ function copyShare(url) {
   navigator.clipboard.writeText(url).then(() => toast('Link copied!', 'success'));
 }
 
-function buildRequestCard(r) {
-  const statusCls = `req-status-${r.status}`;
-  const voted = false;
+function buildReqCard(r) {
+  const statusMap = { open: ['rsb-open', 'Open'], prioritized: ['rsb-prioritized', 'Prioritized'], addressed: ['rsb-addressed', 'Addressed'] };
+  const [cls, label] = statusMap[r.status] || ['rsb-open', r.status];
   return `
-    <div class="request-card">
-      <div class="vote-block">
-        <div class="vote-count">${r.vote_count}</div>
-        <button class="vote-btn ${voted ? 'voted' : ''}" onclick="event.stopPropagation();voteRequest(${r.request_id}, this)" title="Vote">▲</button>
+    <div class="req-card">
+      <div class="vote-col">
+        <div class="vote-num">${r.vote_count}</div>
+        <button class="vote-btn" onclick="voteRequest(${r.request_id}, this)" title="Upvote">▲</button>
         <div class="vote-label">votes</div>
       </div>
       <div class="req-body">
-        <div class="req-title">${escHtml(r.topic)}</div>
-        <div class="req-desc">${escHtml(r.description)}</div>
+        <div class="req-title">${esc(r.topic)}</div>
+        <div class="req-desc">${esc(r.description)}</div>
         <div class="req-footer">
-          <span>👤 ${escHtml(r.requester_name || 'Anonymous')}</span>
-          <span class="${statusCls}">● ${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span>
+          <span>${esc(r.requester_name || 'Anonymous')}</span>
+          <span class="req-status-badge ${cls}">${label}</span>
           <span>${relTime(r.created_at)}</span>
         </div>
       </div>
@@ -394,17 +534,17 @@ function buildRequestCard(r) {
 
 async function loadRequests() {
   const el = document.getElementById('requests-list');
-  el.innerHTML = '<p style="color:var(--text-2)">Loading...</p>';
+  el.innerHTML = '<div style="color:var(--text-2);font-size:13px;padding:20px 0">Loading...</div>';
   try {
     let url = `/requests?page=${state.reqPage}&limit=10`;
     if (state.reqStatus) url += `&status=${state.reqStatus}`;
     const data = await api(url);
     el.innerHTML = data.requests.length
-      ? data.requests.map(r => buildRequestCard(r)).join('')
-      : '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No requests found</div></div>';
-    buildPagination('requests-pagination', data.page, data.pages, (p) => { state.reqPage = p; loadRequests(); });
+      ? data.requests.map(r => buildReqCard(r)).join('')
+      : `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No requests found</div></div>`;
+    buildPagination('requests-pagination', data.page, data.pages, p => { state.reqPage = p; loadRequests(); });
   } catch (_) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load</div></div>';
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load</div></div>`;
   }
 }
 
@@ -412,9 +552,8 @@ async function voteRequest(id, btn) {
   if (!state.user) { toast('Sign in to vote', 'info'); return; }
   try {
     const res = await api(`/requests/${id}/vote`, { method: 'POST' });
-    const countEl = btn.previousElementSibling;
-    const curr = parseInt(countEl.textContent);
-    countEl.textContent = res.voted ? curr + 1 : curr - 1;
+    const numEl = btn.previousElementSibling;
+    numEl.textContent = parseInt(numEl.textContent) + (res.voted ? 1 : -1);
     btn.classList.toggle('voted', res.voted);
   } catch (err) {
     toast(err.message, 'error');
@@ -431,96 +570,104 @@ async function loadAdmin() {
 }
 
 async function adminTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`).classList.add('active');
-  ['overview', 'review', 'users', 'sources'].forEach(t => {
+  document.querySelectorAll('#page-admin .tab-item').forEach(t => t.classList.remove('active'));
+  const tabEl = document.getElementById(`atab-${tab}`);
+  if (tabEl) tabEl.classList.add('active');
+  ['overview','review','users','sources'].forEach(t => {
     document.getElementById(`admin-${t}`).style.display = t === tab ? 'block' : 'none';
   });
 
   if (tab === 'overview') {
     try {
       const stats = await api('/admin/stats');
-      document.getElementById('dash-stats').innerHTML = `
-        <div class="stat-card"><div class="stat-label">Total Submissions</div><div class="stat-value stat-gold">${stats.total_submissions}</div></div>
-        <div class="stat-card"><div class="stat-label">Verified</div><div class="stat-value stat-green">${stats.verified}</div></div>
-        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value stat-amber">${stats.pending}</div></div>
-        <div class="stat-card"><div class="stat-label">Rejected</div><div class="stat-value stat-red">${stats.rejected}</div></div>
-        <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value stat-purple">${stats.total_users}</div></div>
-        <div class="stat-card"><div class="stat-label">Research Requests</div><div class="stat-value stat-gold">${stats.total_requests}</div></div>
-      `;
-      document.getElementById('cat-breakdown').innerHTML = stats.by_category.map(c => `
-        <div style="margin-bottom:0.75rem">
-          <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.25rem">
-            <span>${catIcons[c.category_name] || ''} ${c.category_name}</span>
-            <span style="color:var(--text-2)">${c.count}</span>
-          </div>
-          <div class="progress-bar-outer">
-            <div class="progress-bar-inner" style="width:${Math.min(100, (c.count / stats.total_submissions) * 100)}%"></div>
-          </div>
+      document.getElementById('admin-overview').innerHTML = `
+        <div class="admin-stat-row">
+          <div class="admin-stat"><div class="admin-stat-label">Total Submissions</div><div class="admin-stat-value sv-accent">${stats.total_submissions}</div></div>
+          <div class="admin-stat"><div class="admin-stat-label">Verified</div><div class="admin-stat-value sv-green">${stats.verified}</div></div>
+          <div class="admin-stat"><div class="admin-stat-label">Pending</div><div class="admin-stat-value sv-amber">${stats.pending}</div></div>
+          <div class="admin-stat"><div class="admin-stat-label">Rejected</div><div class="admin-stat-value sv-red">${stats.rejected}</div></div>
+          <div class="admin-stat"><div class="admin-stat-label">Users</div><div class="admin-stat-value sv-accent">${stats.total_users}</div></div>
+          <div class="admin-stat"><div class="admin-stat-label">Research Requests</div><div class="admin-stat-value">${stats.total_requests}</div></div>
         </div>
-      `).join('');
+        <div style="font-size:14px;font-weight:500;color:var(--text-0);margin-bottom:14px">Submissions by Category</div>
+        ${stats.by_category.map(c => `
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+              <span>${catIcons[c.category_name] || ''} ${c.category_name}</span>
+              <span style="color:var(--text-2)">${c.count}</span>
+            </div>
+            <div class="prog-outer">
+              <div class="prog-inner" style="width:${Math.round((c.count/Math.max(stats.total_submissions,1))*100)}%"></div>
+            </div>
+          </div>
+        `).join('')}
+      `;
     } catch (_) {}
   } else if (tab === 'review') {
     try {
       const subs = await api('/admin/pending');
-      const el = document.getElementById('review-queue');
+      const el = document.getElementById('admin-review');
       el.innerHTML = subs.length
-        ? subs.map(s => `
-          <div class="card" style="margin-bottom:1rem">
-            <div class="card-meta">
-              <span class="card-category">${catIcons[s.category_name] || ''} ${s.category_name}</span>
-              ${statusBadge(s.status)}
-            </div>
-            <div class="card-title">${escHtml(s.title)}</div>
-            <div class="card-abstract" style="-webkit-line-clamp:2">${escHtml(s.abstract)}</div>
-            <div class="card-footer">
-              <span style="font-size:0.78rem;color:var(--text-2)">by ${escHtml(s.author_name)} · ${relTime(s.created_at)}</span>
-              <div style="display:flex;gap:0.5rem">
-                <button class="btn btn-sm btn-ghost" onclick="navigate('detail','${s.submission_id}')">View</button>
-                <button class="btn btn-sm btn-primary" onclick="openReviewModal('${s.submission_id}')">Review</button>
+        ? `<div class="content-grid">${subs.map(s => `
+            <div class="proj-card">
+              <div class="proj-card-body" style="padding-top:20px">
+                <div class="proj-card-header" style="margin-bottom:12px">
+                  <span class="cat-pill">${catIcons[s.category_name] || ''} ${esc(s.category_name)}</span>
+                  ${statusPill(s.status)}
+                </div>
+                <div class="proj-title" style="font-size:16px;margin-bottom:8px">${esc(s.title)}</div>
+                <div style="font-size:12px;color:var(--text-2);margin-bottom:14px;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden">${esc(s.abstract)}</div>
+                <div style="font-size:12px;color:var(--text-2);margin-bottom:14px">by ${esc(s.author_name)} · ${relTime(s.created_at)}</div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-ghost btn-sm" onclick="navigate('detail','${s.submission_id}')">View</button>
+                  <button class="btn btn-primary btn-sm" onclick="openReviewModal('${s.submission_id}')">Review</button>
+                </div>
               </div>
             </div>
-          </div>
-        `).join('')
-        : '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Queue is clear</div></div>';
+          `).join('')}</div>`
+        : `<div class="empty-state"><div class="empty-icon">✓</div><div class="empty-title">Queue is clear</div><div class="empty-body">All submissions reviewed.</div></div>`;
     } catch (_) {}
   } else if (tab === 'users') {
     try {
       const users = await api('/admin/users');
-      const tbl = document.getElementById('users-table');
-      tbl.innerHTML = `
-        <thead><tr>
-          <th>Name</th><th>Email</th><th>Role</th><th>Institution</th><th>Joined</th><th>Action</th>
-        </tr></thead>
-        <tbody>${users.map(u => `
-          <tr>
-            <td>${escHtml(u.name)}</td>
-            <td style="color:var(--text-2)">${escHtml(u.email)}</td>
-            <td><span class="status-badge status-${u.role === 'admin' ? 'verified' : u.role === 'reviewer' ? 'pending' : 'revision_requested'}">${u.role}</span></td>
-            <td style="color:var(--text-2)">${escHtml(u.institution || '—')}</td>
-            <td style="color:var(--text-2)">${relTime(u.created_at)}</td>
-            <td>
-              <select class="filter-select" onchange="changeRole(${u.user_id}, this.value)" style="font-size:0.75rem">
-                ${['public','researcher','reviewer','admin'].map(r => `<option ${r===u.role?'selected':''} value="${r}">${r}</option>`).join('')}
-              </select>
-            </td>
-          </tr>
-        `).join('')}</tbody>
+      document.getElementById('admin-users').innerHTML = `
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Institution</th><th>Joined</th><th>Action</th></tr></thead>
+            <tbody>${users.map(u => `
+              <tr>
+                <td><strong>${esc(u.name)}</strong></td>
+                <td style="color:var(--text-2)">${esc(u.email)}</td>
+                <td>${statusPill(u.role === 'admin' ? 'verified' : u.role === 'reviewer' ? 'pending' : 'revision_requested').replace(/Active|Pending|Revision/g, u.role)}</td>
+                <td style="color:var(--text-2)">${esc(u.institution || '—')}</td>
+                <td style="color:var(--text-2)">${relTime(u.created_at)}</td>
+                <td>
+                  <select class="role-select" onchange="changeRole(${u.user_id}, this.value)">
+                    ${['public','researcher','reviewer','admin'].map(r => `<option ${r===u.role?'selected':''} value="${r}">${r}</option>`).join('')}
+                  </select>
+                </td>
+              </tr>
+            `).join('')}</tbody>
+          </table>
+        </div>
       `;
     } catch (_) {}
   } else if (tab === 'sources') {
     try {
       const sources = await api('/admin/external-sources');
-      document.getElementById('sources-grid').innerHTML = sources.map(src => `
-        <div class="card">
-          <div class="card-title" style="font-size:0.95rem">${escHtml(src.name)}</div>
-          <div style="font-size:0.78rem;color:var(--text-2);margin-top:0.5rem;word-break:break-all">${escHtml(src.base_url)}</div>
-          <div class="card-footer">
-            <span style="font-size:0.72rem;color:var(--text-2)">Last indexed: ${src.last_indexed_at ? relTime(src.last_indexed_at) : 'Never'}</span>
-            <a class="btn btn-ghost btn-sm" href="${escHtml(src.base_url)}" target="_blank" rel="noopener">Visit ↗</a>
+      document.getElementById('admin-sources').innerHTML = `
+        <div class="content-grid">${sources.map(src => `
+          <div class="proj-card">
+            <div class="proj-card-body" style="padding-top:20px">
+              <div class="proj-title" style="font-size:16px;margin-bottom:8px">${esc(src.name)}</div>
+              <div style="font-size:12px;color:var(--text-2);word-break:break-all;margin-bottom:14px">${esc(src.base_url)}</div>
+              <div style="font-size:12px;color:var(--text-2);margin-bottom:16px">Last indexed: ${src.last_indexed_at ? relTime(src.last_indexed_at) : 'Never'}</div>
+              <a class="btn btn-ghost btn-sm" href="${esc(src.base_url)}" target="_blank" rel="noopener">Visit Source ↗</a>
+            </div>
           </div>
+        `).join('')}
         </div>
-      `).join('');
+      `;
     } catch (_) {}
   }
 }
@@ -535,15 +682,14 @@ async function changeRole(uid, role) {
 }
 
 async function loadMySubmissions() {
-  const grid = document.getElementById('my-subs-grid');
   if (!state.user) { navigate('home'); return; }
-  grid.innerHTML = '<p style="color:var(--text-2)">Loading...</p>';
+  const grid = document.getElementById('my-subs-grid');
+  grid.innerHTML = '<div style="color:var(--text-2);font-size:13px">Loading...</div>';
   try {
     const data = await api('/submissions?limit=50');
-    const mine = data.submissions.filter(s => s.user_id === state.user.user_id || true);
     grid.innerHTML = data.submissions.length
-      ? data.submissions.map(s => buildSubmissionCard(s)).join('')
-      : '<div class="empty-state"><div class="empty-icon">📄</div><div class="empty-title">No submissions yet</div></div>';
+      ? data.submissions.map(s => buildArchiveCard(s)).join('')
+      : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📄</div><div class="empty-title">No submissions yet</div><div class="empty-body">Submit your first research contribution.</div></div>`;
   } catch (_) {}
 }
 
@@ -551,24 +697,22 @@ async function fetchNotifications() {
   if (!state.user) return;
   try {
     const notifs = await api('/notifications');
-    state.notifications = notifs;
     const unread = notifs.filter(n => !n.is_read).length;
-    const badge = document.getElementById('notif-badge');
-    badge.style.display = unread > 0 ? 'flex' : 'none';
-    badge.textContent = unread;
+    const dot = document.getElementById('notif-dot');
+    dot.style.display = unread > 0 ? 'block' : 'none';
 
     const panel = document.getElementById('notif-panel');
     panel.innerHTML = `
-      <div class="notif-header">
+      <div class="notif-panel-header">
         <span>Notifications</span>
-        <span style="color:var(--gold);cursor:pointer;font-weight:400" onclick="markAllRead()">Mark all read</span>
+        <span onclick="markAllRead()">Mark all read</span>
       </div>
       ${notifs.length ? notifs.map(n => `
         <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="markRead(${n.notification_id})">
-          <div class="notif-item-title">${escHtml(n.title)}</div>
-          <div class="notif-item-msg">${escHtml(n.message)}</div>
+          <div class="notif-item-title">${esc(n.title)}</div>
+          <div class="notif-item-msg">${esc(n.message)}</div>
         </div>
-      `).join('') : '<div style="padding:1.5rem;text-align:center;color:var(--text-2);font-size:0.82rem">No notifications</div>'}
+      `).join('') : '<div style="padding:20px;text-align:center;font-size:13px;color:var(--text-2)">No notifications</div>'}
     `;
   } catch (_) {}
 }
@@ -588,8 +732,8 @@ function buildPagination(containerId, cur, total, cb) {
   if (total <= 1) { el.innerHTML = ''; return; }
   let html = `<button class="page-btn" ${cur===1?'disabled':''} onclick="(${cb.toString()})(${cur-1})">←</button>`;
   for (let i = 1; i <= total; i++) {
-    if (total > 7 && (i > 2 && i < cur - 1)) { if (i === 3) html += '<span style="color:var(--text-2);padding:0 4px">…</span>'; continue; }
-    if (total > 7 && (i > cur + 1 && i < total - 1)) { if (i === cur + 2) html += '<span style="color:var(--text-2);padding:0 4px">…</span>'; continue; }
+    if (total > 7 && i > 2 && i < cur - 1) { if (i === 3) html += '<span style="color:var(--text-2);padding:0 4px">…</span>'; continue; }
+    if (total > 7 && i > cur + 1 && i < total - 1) { if (i === cur + 2) html += '<span style="color:var(--text-2);padding:0 4px">…</span>'; continue; }
     html += `<button class="page-btn ${i===cur?'active':''}" onclick="(${cb.toString()})(${i})">${i}</button>`;
   }
   html += `<button class="page-btn" ${cur===total?'disabled':''} onclick="(${cb.toString()})(${cur+1})">→</button>`;
@@ -629,16 +773,19 @@ function debounceSearch() {
 
 function onFileSelect(e) {
   const f = e.target.files[0];
-  document.getElementById('upload-label').textContent = f ? `📎 ${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)` : '📎 Click to attach a file';
+  document.getElementById('upload-label').textContent = f
+    ? `${f.name} — ${(f.size / 1024 / 1024).toFixed(1)} MB`
+    : 'Click to browse or drag a file here';
 }
 
 async function handleLogin(e) {
   e.preventDefault();
   document.getElementById('login-error').textContent = '';
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-password').value;
   try {
-    const res = await api('/auth/login', { method: 'POST', body: { email, password } });
+    const res = await api('/auth/login', {
+      method: 'POST',
+      body: { email: document.getElementById('login-email').value, password: document.getElementById('login-password').value }
+    });
     saveSession(res.token, res.user);
     updateNav();
     closeModal('login-modal');
@@ -661,8 +808,7 @@ async function handleRegister(e) {
   };
   try {
     const res = await api('/auth/register', { method: 'POST', body });
-    const user = { ...body, user_id: null, role: res.role };
-    saveSession(res.token, user);
+    saveSession(res.token, { ...body, role: res.role });
     updateNav();
     closeModal('register-modal');
     toast('Account created! Welcome 🎉', 'success');
@@ -681,11 +827,11 @@ async function handleSubmit(e) {
   const file = document.getElementById('sub-file').files[0];
   if (file) fd.append('file', file);
   try {
-    const res = await api('/submissions', { method: 'POST', formData: fd });
+    await api('/submissions', { method: 'POST', formData: fd });
     closeModal('submit-modal');
-    toast('Submitted for peer review ✅', 'success');
+    toast('Submitted for peer review', 'success');
     e.target.reset();
-    document.getElementById('upload-label').textContent = '📎 Click to attach a file';
+    document.getElementById('upload-label').textContent = 'Click to browse or drag a file here';
     fetchNotifications();
   } catch (err) {
     document.getElementById('submit-error').textContent = err.message;
@@ -695,12 +841,11 @@ async function handleSubmit(e) {
 async function handleRequest(e) {
   e.preventDefault();
   document.getElementById('req-error').textContent = '';
-  const body = {
-    topic: document.getElementById('req-topic').value,
-    description: document.getElementById('req-desc').value
-  };
   try {
-    await api('/requests', { method: 'POST', body });
+    await api('/requests', {
+      method: 'POST',
+      body: { topic: document.getElementById('req-topic').value, description: document.getElementById('req-desc').value }
+    });
     closeModal('request-modal');
     toast('Research request submitted!', 'success');
     e.target.reset();
@@ -733,12 +878,7 @@ function logout() {
   updateNav();
   closeAllDropdowns();
   navigate('home');
-  toast('Signed out.', 'info');
-}
-
-function escHtml(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  toast('Signed out', 'info');
 }
 
 (function init() {
