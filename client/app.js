@@ -288,50 +288,62 @@ function adjustHex(hex, amount) {
   return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
 }
 
+const catAccentColors = {
+  1: { band: 'linear-gradient(90deg,#c4a882,#e8d5b0)', pill: '#f5ece0', pillText: '#8a6c3a' },
+  2: { band: 'linear-gradient(90deg,#4a7cb5,#7aaee0)', pill: '#e8f0f8', pillText: '#2e5f92' },
+  3: { band: 'linear-gradient(90deg,#8a5db8,#b48fe0)', pill: '#f0e8f8', pillText: '#6b3f9a' },
+  4: { band: 'linear-gradient(90deg,#c4623a,#e89070)', pill: '#f8ece8', pillText: '#9a3e1e' },
+  5: { band: 'linear-gradient(90deg,#3a9c6e,#70c49a)', pill: '#e8f8ee', pillText: '#1e7a4e' },
+  6: { band: 'linear-gradient(90deg,#5a9c3a,#90c470)', pill: '#eef8e8', pillText: '#3a7a1e' }
+};
+
+const avatarGradients = [
+  'linear-gradient(135deg,#4F46E5,#7c6cd4)',
+  'linear-gradient(135deg,#059669,#10b981)',
+  'linear-gradient(135deg,#d97706,#f59e0b)',
+  'linear-gradient(135deg,#dc2626,#ef4444)',
+  'linear-gradient(135deg,#0891b2,#06b6d4)',
+  'linear-gradient(135deg,#7c3aed,#a78bfa)'
+];
+
+function avatarGrad(name) {
+  let h = 0;
+  for (let i = 0; i < (name || '').length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return avatarGradients[h % avatarGradients.length];
+}
+
 function buildArchiveCard(s) {
-  const col = catColors[s.category_id] || { bg: '#f4f4f6', accent: '#7A7A82' };
+  const col = catAccentColors[s.category_id] || { band: 'linear-gradient(90deg,#9A9AA3,#c0c0c8)', pill: '#f4f4f6', pillText: '#5a5a62' };
   const icon = catIcons[s.category_name] || '📄';
+  const grad = avatarGrad(s.author_name);
+  const srcTag = s.source_type === 'aggregated'
+    ? `<span class="archive-source-tag">🔗 Aggregated</span>`
+    : '';
   return `
-    <div class="proj-card" onclick="navigate('detail','${s.submission_id}')">
-      <div class="proj-card-inner">
-        <div class="proj-card-header">
-          <div class="proj-client">
-            <div class="proj-client-logo" style="background:linear-gradient(135deg,${col.accent},${col.bg})">${icon}</div>
-            <div>
-              <div class="proj-client-name">${esc(s.author_name)}</div>
-              <div class="proj-client-date">${fmtDate(s.created_at)}</div>
-            </div>
-          </div>
-          <div class="proj-header-right">
-            ${statusPill(s.status)}
-          </div>
+    <div class="archive-card" onclick="navigate('detail','${s.submission_id}')">
+      <div class="archive-card-band" style="background:${col.band}"></div>
+      <div class="archive-card-body">
+        <div class="archive-card-top">
+          <span class="archive-cat-pill" style="background:${col.pill};color:${col.pillText}">${icon} ${esc(s.category_name)}</span>
+          ${srcTag}
         </div>
-        <div class="proj-img-wrap">
-          <div class="proj-img-placeholder" style="background:linear-gradient(135deg,${col.bg},${adjustHex(col.bg,-15)})">${icon}</div>
-        </div>
+        <div class="archive-card-title">${esc(s.title)}</div>
+        <div class="archive-card-abstract">${esc(s.abstract)}</div>
       </div>
-      <div class="proj-card-body">
-        <div class="proj-title">${esc(s.title)}</div>
-        <div class="proj-tags">
-          <span class="proj-tag">${esc(s.category_name)}</span>
-          ${s.source_type === 'aggregated' ? '<span class="proj-tag">Aggregated</span>' : ''}
-        </div>
-        <div class="proj-meta">
-          <div class="proj-meta-row">
-            <span class="proj-meta-icon" style="width:14px;height:14px;font-size:11px">📝</span>
-            <span style="-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;color:var(--text-2)">${esc(s.abstract.slice(0,120))}…</span>
-          </div>
-          <div class="proj-meta-row">
-            <span class="proj-meta-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </span>
-            ${relTime(s.created_at)}
+      <div class="archive-card-footer">
+        <div class="archive-card-author">
+          <div class="archive-author-avatar" style="background:${grad}">${initials(s.author_name)}</div>
+          <div class="archive-author-info">
+            <div class="archive-author-name">${esc(s.author_name)}</div>
+            <div class="archive-author-date">${fmtDate(s.created_at)}</div>
           </div>
         </div>
+        ${statusPill(s.status)}
       </div>
     </div>
   `;
 }
+
 
 async function loadHome() {
   const row = document.getElementById('home-cards');
@@ -377,9 +389,12 @@ async function loadCatsToForm() {
 async function loadArchive() {
   const grid = document.getElementById('archive-grid');
   grid.innerHTML = `
-    <div class="skeleton" style="height:380px;border-radius:var(--radius-card)"></div>
-    <div class="skeleton" style="height:380px;border-radius:var(--radius-card)"></div>
-    <div class="skeleton" style="height:380px;border-radius:var(--radius-card)"></div>
+    <div class="skeleton" style="height:220px;border-radius:20px"></div>
+    <div class="skeleton" style="height:220px;border-radius:20px"></div>
+    <div class="skeleton" style="height:220px;border-radius:20px"></div>
+    <div class="skeleton" style="height:220px;border-radius:20px"></div>
+    <div class="skeleton" style="height:220px;border-radius:20px"></div>
+    <div class="skeleton" style="height:220px;border-radius:20px"></div>
   `;
 
   try {
