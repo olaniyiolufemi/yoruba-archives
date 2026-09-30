@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --page-bg: #EFEFEF;
   --surface: #F8F8F8;
   --card: #FFFFFF;
   --text-0: #3A3A3F;
@@ -14,7 +13,6 @@
   --border: #E2E2E6;
   --tab-track: #E8E8EA;
   --hover-fill: #EFEFF1;
-  --radius-frame: 44px;
   --radius-card: 30px;
   --radius-img: 20px;
   --radius-switcher: 15px;
@@ -32,19 +30,14 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { height: 100%; }
+html, body { height: 100%; }
 
 body {
-  background: var(--page-bg);
+  background: var(--surface);
   font-family: var(--font);
   font-size: 15px;
   line-height: 1.5;
   color: var(--text-0);
-  min-height: 100vh;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 24px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -56,14 +49,9 @@ img { display: block; max-width: 100%; }
 
 #app {
   width: 100%;
-  max-width: 1380px;
-  min-height: calc(100vh - 48px);
-  background: var(--surface);
-  border-radius: var(--radius-frame);
-  border: 1px solid var(--border);
+  min-height: 100vh;
   display: flex;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.06);
 }
 
 /* ─── SIDEBAR ─────────────────────────────────────── */
@@ -79,6 +67,11 @@ img { display: block; max-width: 100%; }
   overflow-y: auto;
   overflow-x: hidden;
   gap: 0;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  max-height: 100vh;
 }
 
 .sidebar-logo {
@@ -262,8 +255,9 @@ img { display: block; max-width: 100%; }
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 40px 40px 40px 44px;
+  padding: 40px 48px 60px;
   overflow-x: hidden;
+  background: var(--surface);
 }
 
 .main-header {
@@ -371,7 +365,7 @@ img { display: block; max-width: 100%; }
 
 .cards-scroll-wrap {
   position: relative;
-  margin-right: -40px;
+  margin-right: -48px;
 }
 
 .cards-row {
@@ -485,7 +479,7 @@ img { display: block; max-width: 100%; }
   align-items: center;
   justify-content: center;
   font-size: 48px;
-  background: var(--page-bg);
+  background: var(--tab-track);
 }
 
 .proj-card-body { padding: 18px 20px 20px; }
@@ -810,7 +804,7 @@ img { display: block; max-width: 100%; }
 
 .share-url-box {
   flex: 1;
-  background: var(--page-bg);
+  background: var(--tab-track);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 12px;
@@ -1283,8 +1277,6 @@ img { display: block; max-width: 100%; }
 /* ─── RESPONSIVE ────────────────────────────────────── */
 
 @media (max-width: 900px) {
-  body { padding: 0; }
-  #app { border-radius: 0; min-height: 100vh; }
   .sidebar { display: none; }
   .main { padding: 24px 20px; }
   .proj-card { width: 320px; }
