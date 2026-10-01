@@ -1,21 +1,14 @@
 const API = '/api';
 
-const catIcons = {
-  'Art & Sculpture': '🏺',
-  'Linguistics & Orthography': '🔤',
-  'Cosmology & Philosophy': '☽',
-  'Historical Monarchies & Wars': '⚔️',
-  'Musical Traditions & Oral Poetry': '🥁',
-  'Indigenous Medicine & Botany': '🌿'
-};
+const catIcons = {};
 
 const catColors = {
-  1: { bg: '#f0ece4', accent: '#c4a882' },
-  2: { bg: '#e8f0f8', accent: '#4a7cb5' },
-  3: { bg: '#f0e8f8', accent: '#8a5db8' },
-  4: { bg: '#f8ece8', accent: '#c4623a' },
-  5: { bg: '#e8f8ee', accent: '#3a9c6e' },
-  6: { bg: '#eef8e8', accent: '#5a9c3a' }
+  1: { bg: '#f0f0f0', accent: '#888888' },
+  2: { bg: '#ebebeb', accent: '#777777' },
+  3: { bg: '#e8e8e8', accent: '#666666' },
+  4: { bg: '#f2f2f2', accent: '#555555' },
+  5: { bg: '#eeeeee', accent: '#999999' },
+  6: { bg: '#f4f4f4', accent: '#aaaaaa' }
 };
 
 let state = {
@@ -217,22 +210,22 @@ function toast(msg, type = 'info') {
   const c = document.getElementById('toast-container');
   const div = document.createElement('div');
   div.className = `toast toast-${type}`;
-  const icons = { success: '✓', error: '✕', info: 'i' };
-  div.innerHTML = `<span style="width:16px;height:16px;border-radius:50%;background:${type==='success'?'var(--green)':type==='error'?'#DC2626':'var(--accent)'};color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${icons[type]}</span><span>${msg}</span>`;
+  const icons = { success: '+', error: 'x', info: 'i' };
+  div.innerHTML = `<span style="width:16px;height:16px;border-radius:50%;background:#111111;color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${icons[type]}</span><span>${msg}</span>`;
   c.appendChild(div);
   setTimeout(() => div.remove(), 4000);
 }
 
 function buildCard(s) {
   const col = catColors[s.category_id] || { bg: '#f4f4f6', accent: '#7A7A82' };
-  const icon = catIcons[s.category_name] || '📄';
+  const icon = catIcons[s.category_name] || '—';
   const srcTag = s.source_type === 'aggregated' ? `<span class="proj-tag">External source</span>` : '';
   return `
     <div class="proj-card" onclick="navigate('detail','${s.submission_id}')">
       <div class="proj-card-inner">
         <div class="proj-card-header">
           <div class="proj-client">
-            <div class="proj-client-logo" style="background:linear-gradient(135deg,${col.accent},${col.bg})">${icon}</div>
+            <div class="proj-client-logo" style="background:#eeeeee"></div>
             <div>
               <div class="proj-client-name">${esc(s.author_name)}</div>
               <div class="proj-client-date">${fmtDate(s.created_at)}</div>
@@ -246,7 +239,7 @@ function buildCard(s) {
           </div>
         </div>
         <div class="proj-img-wrap">
-          <div class="proj-img-placeholder" style="background:linear-gradient(135deg,${col.bg},${adjustHex(col.bg, -15)})">${icon}</div>
+          <div class="proj-img-placeholder" style="background:linear-gradient(135deg,#f0f0f0,#e0e0e0)"></div>
         </div>
       </div>
       <div class="proj-card-body">
@@ -289,21 +282,21 @@ function adjustHex(hex, amount) {
 }
 
 const catAccentColors = {
-  1: { band: 'linear-gradient(90deg,#c4a882,#e8d5b0)', pill: '#f5ece0', pillText: '#8a6c3a' },
-  2: { band: 'linear-gradient(90deg,#4a7cb5,#7aaee0)', pill: '#e8f0f8', pillText: '#2e5f92' },
-  3: { band: 'linear-gradient(90deg,#8a5db8,#b48fe0)', pill: '#f0e8f8', pillText: '#6b3f9a' },
-  4: { band: 'linear-gradient(90deg,#c4623a,#e89070)', pill: '#f8ece8', pillText: '#9a3e1e' },
-  5: { band: 'linear-gradient(90deg,#3a9c6e,#70c49a)', pill: '#e8f8ee', pillText: '#1e7a4e' },
-  6: { band: 'linear-gradient(90deg,#5a9c3a,#90c470)', pill: '#eef8e8', pillText: '#3a7a1e' }
+  1: { band: 'linear-gradient(90deg,#cccccc,#e8e8e8)', pill: '#f0f0f0', pillText: '#333333' },
+  2: { band: 'linear-gradient(90deg,#b0b0b0,#d8d8d8)', pill: '#ebebeb', pillText: '#222222' },
+  3: { band: 'linear-gradient(90deg,#c0c0c0,#e0e0e0)', pill: '#f0f0f0', pillText: '#2a2a2a' },
+  4: { band: 'linear-gradient(90deg,#aaaaaa,#d0d0d0)', pill: '#ebebeb', pillText: '#1a1a1a' },
+  5: { band: 'linear-gradient(90deg,#bbbbbb,#dedede)', pill: '#f2f2f2', pillText: '#333333' },
+  6: { band: 'linear-gradient(90deg,#c8c8c8,#e4e4e4)', pill: '#f4f4f4', pillText: '#2a2a2a' }
 };
 
 const avatarGradients = [
-  'linear-gradient(135deg,#4F46E5,#7c6cd4)',
-  'linear-gradient(135deg,#059669,#10b981)',
-  'linear-gradient(135deg,#d97706,#f59e0b)',
-  'linear-gradient(135deg,#dc2626,#ef4444)',
-  'linear-gradient(135deg,#0891b2,#06b6d4)',
-  'linear-gradient(135deg,#7c3aed,#a78bfa)'
+  'linear-gradient(135deg,#555555,#222222)',
+  'linear-gradient(135deg,#666666,#333333)',
+  'linear-gradient(135deg,#888888,#444444)',
+  'linear-gradient(135deg,#444444,#111111)',
+  'linear-gradient(135deg,#777777,#3a3a3a)',
+  'linear-gradient(135deg,#999999,#555555)'
 ];
 
 function avatarGrad(name) {
@@ -313,18 +306,18 @@ function avatarGrad(name) {
 }
 
 function buildArchiveCard(s) {
-  const col = catAccentColors[s.category_id] || { band: 'linear-gradient(90deg,#9A9AA3,#c0c0c8)', pill: '#f4f4f6', pillText: '#5a5a62' };
-  const icon = catIcons[s.category_name] || '📄';
+  const col = catAccentColors[s.category_id] || { band: 'linear-gradient(90deg,#cccccc,#e0e0e0)', pill: '#f0f0f0', pillText: '#444444' };
+  const icon = '';
   const grad = avatarGrad(s.author_name);
   const srcTag = s.source_type === 'aggregated'
-    ? `<span class="archive-source-tag">🔗 Aggregated</span>`
+    ? `<span class="archive-source-tag">Aggregated</span>`
     : '';
   return `
     <div class="archive-card" onclick="navigate('detail','${s.submission_id}')">
       <div class="archive-card-band" style="background:${col.band}"></div>
       <div class="archive-card-body">
         <div class="archive-card-top">
-          <span class="archive-cat-pill" style="background:${col.pill};color:${col.pillText}">${icon} ${esc(s.category_name)}</span>
+          <span class="archive-cat-pill" style="background:${col.pill};color:${col.pillText}">${esc(s.category_name)}</span>
           ${srcTag}
         </div>
         <div class="archive-card-title">${esc(s.title)}</div>
@@ -364,10 +357,10 @@ async function loadHome() {
     if (subsData.submissions.length) {
       row.innerHTML = subsData.submissions.map(s => buildCard(s)).join('');
     } else {
-      row.innerHTML = `<div class="empty-state" style="width:100%"><div class="empty-icon">📂</div><div class="empty-title">No research found</div><div class="empty-body">Be the first to submit in this category.</div></div>`;
+      row.innerHTML = `<div class="empty-state" style="width:100%"><div class="empty-icon">—</div><div class="empty-title">No research found</div><div class="empty-body">Be the first to submit in this category.</div></div>`;
     }
   } catch (err) {
-    row.innerHTML = `<div class="empty-state" style="width:100%"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load</div></div>`;
+    row.innerHTML = `<div class="empty-state" style="width:100%"><div class="empty-icon">!</div><div class="empty-title">Failed to load</div></div>`;
   }
 }
 
@@ -419,11 +412,11 @@ async function loadArchive() {
     const data = await api(url);
     grid.innerHTML = data.submissions.length
       ? data.submissions.map(s => buildArchiveCard(s)).join('')
-      : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">No results</div><div class="empty-body">Try adjusting your filters or search term.</div></div>`;
+      : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">—</div><div class="empty-title">No results</div><div class="empty-body">Try adjusting your filters or search term.</div></div>`;
 
     buildPagination('archive-pagination', data.page, data.pages, p => { state.archivePage = p; loadArchive(); });
   } catch (err) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load archive</div></div>`;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">!</div><div class="empty-title">Failed to load archive</div></div>`;
   }
 }
 
@@ -441,7 +434,7 @@ async function loadDetail(id) {
   try {
     const s = await api(`/submissions/${id}`);
     const col = catColors[s.category_id] || { bg: '#f4f4f6', accent: '#7A7A82' };
-    const icon = catIcons[s.category_name] || '📄';
+    const icon = catIcons[s.category_name] || '—';
 
     row.innerHTML = `
       <span class="cat-pill">${icon} ${esc(s.category_name)}</span>
@@ -466,8 +459,8 @@ async function loadDetail(id) {
 
     let fileHtml = '';
     if (s.file_url) {
-      const icons = { 'application/pdf': '📄', 'image/jpeg': '🖼', 'image/png': '🖼', 'audio/mpeg': '🎵', 'video/mp4': '🎬' };
-      const ico = icons[s.file_type] || '📎';
+      const icons = { 'application/pdf': 'PDF', 'image/jpeg': 'IMG', 'image/png': 'IMG', 'audio/mpeg': 'MP3', 'video/mp4': 'MP4' };
+      const ico = icons[s.file_type] || 'FILE';
       fileHtml = `
         <div class="file-card">
           <div class="file-card-icon">${ico}</div>
@@ -511,7 +504,7 @@ async function loadDetail(id) {
       ${reviewHtml}
     `;
   } catch (_) {
-    bodyEl.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load submission</div></div>`;
+    bodyEl.innerHTML = `<div class="empty-state"><div class="empty-icon">!</div><div class="empty-title">Could not load submission</div></div>`;
   }
 }
 
@@ -556,10 +549,10 @@ async function loadRequests() {
     const data = await api(url);
     el.innerHTML = data.requests.length
       ? data.requests.map(r => buildReqCard(r)).join('')
-      : `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No requests found</div></div>`;
+      : `<div class="empty-state"><div class="empty-icon">—</div><div class="empty-title">No requests found</div></div>`;
     buildPagination('requests-pagination', data.page, data.pages, p => { state.reqPage = p; loadRequests(); });
   } catch (_) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">!</div><div class="empty-title">Failed to load</div></div>`;
   }
 }
 
@@ -640,7 +633,7 @@ async function adminTab(tab) {
               </div>
             </div>
           `).join('')}</div>`
-        : `<div class="empty-state"><div class="empty-icon">✓</div><div class="empty-title">Queue is clear</div><div class="empty-body">All submissions reviewed.</div></div>`;
+        : `<div class="empty-state"><div class="empty-icon">+</div><div class="empty-title">Queue is clear</div><div class="empty-body">All submissions reviewed.</div></div>`;
     } catch (_) {}
   } else if (tab === 'users') {
     try {
@@ -704,7 +697,7 @@ async function loadMySubmissions() {
     const data = await api('/submissions?limit=50');
     grid.innerHTML = data.submissions.length
       ? data.submissions.map(s => buildArchiveCard(s)).join('')
-      : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📄</div><div class="empty-title">No submissions yet</div><div class="empty-body">Submit your first research contribution.</div></div>`;
+      : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">—</div><div class="empty-title">No submissions yet</div><div class="empty-body">Submit your first research contribution.</div></div>`;
   } catch (_) {}
 }
 
@@ -826,7 +819,7 @@ async function handleRegister(e) {
     saveSession(res.token, { ...body, role: res.role });
     updateNav();
     closeModal('register-modal');
-    toast('Account created! Welcome 🎉', 'success');
+    toast('Account created. Welcome!', 'success');
   } catch (err) {
     document.getElementById('reg-error').textContent = err.message;
   }
