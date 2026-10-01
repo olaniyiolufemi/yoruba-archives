@@ -217,29 +217,19 @@ function toast(msg, type = 'info') {
 }
 
 function buildCard(s) {
-  const col = catColors[s.category_id] || { bg: '#f4f4f6', accent: '#7A7A82' };
-  const icon = catIcons[s.category_name] || '—';
-  const srcTag = s.source_type === 'aggregated' ? `<span class="proj-tag">External source</span>` : '';
+  const srcTag = s.source_type === 'aggregated' ? `<span class="proj-tag">Aggregated</span>` : '';
   return `
     <div class="proj-card" onclick="navigate('detail','${s.submission_id}')">
       <div class="proj-card-inner">
         <div class="proj-card-header">
           <div class="proj-client">
-            <div class="proj-client-logo" style="background:#eeeeee"></div>
+            <div class="proj-client-logo"></div>
             <div>
               <div class="proj-client-name">${esc(s.author_name)}</div>
               <div class="proj-client-date">${fmtDate(s.created_at)}</div>
             </div>
           </div>
-          <div class="proj-header-right">
-            ${statusPill(s.status)}
-            <button class="more-btn" onclick="event.stopPropagation()">
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="proj-img-wrap">
-          <div class="proj-img-placeholder" style="background:linear-gradient(135deg,#f0f0f0,#e0e0e0)"></div>
+          <div class="proj-header-right">${statusPill(s.status)}</div>
         </div>
       </div>
       <div class="proj-card-body">
@@ -247,57 +237,16 @@ function buildCard(s) {
         <div class="proj-tags">
           <span class="proj-tag">${esc(s.category_name)}</span>
           ${srcTag}
-          ${s.institution ? `<span class="proj-tag">${esc(s.institution.split(' ').slice(-2).join(' '))}</span>` : ''}
         </div>
         <div class="proj-meta">
-          <div class="proj-meta-row">
-            <span class="proj-meta-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            </span>
-            ${s.source_type === 'aggregated' ? 'Aggregated source' : 'Contributed research'}
-          </div>
-          ${s.file_name ? `<div class="proj-meta-row">
-            <span class="proj-meta-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </span>
-            ${esc(s.file_name)}
-          </div>` : ''}
-          <div class="proj-meta-row">
-            <span class="proj-meta-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </span>
-            Added ${relTime(s.created_at)}
-          </div>
+          <div class="proj-meta-row">${s.source_type === 'aggregated' ? 'Aggregated source' : 'Contributed'}</div>
+          <div class="proj-meta-row">Added ${relTime(s.created_at)}</div>
         </div>
       </div>
     </div>
   `;
 }
 
-function adjustHex(hex, amount) {
-  const r = Math.max(0, Math.min(255, parseInt(hex.slice(1,3),16) + amount));
-  const g = Math.max(0, Math.min(255, parseInt(hex.slice(3,5),16) + amount));
-  const b = Math.max(0, Math.min(255, parseInt(hex.slice(5,7),16) + amount));
-  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
-}
-
-const catAccentColors = {
-  1: { band: 'linear-gradient(90deg,#cccccc,#e8e8e8)', pill: '#f0f0f0', pillText: '#333333' },
-  2: { band: 'linear-gradient(90deg,#b0b0b0,#d8d8d8)', pill: '#ebebeb', pillText: '#222222' },
-  3: { band: 'linear-gradient(90deg,#c0c0c0,#e0e0e0)', pill: '#f0f0f0', pillText: '#2a2a2a' },
-  4: { band: 'linear-gradient(90deg,#aaaaaa,#d0d0d0)', pill: '#ebebeb', pillText: '#1a1a1a' },
-  5: { band: 'linear-gradient(90deg,#bbbbbb,#dedede)', pill: '#f2f2f2', pillText: '#333333' },
-  6: { band: 'linear-gradient(90deg,#c8c8c8,#e4e4e4)', pill: '#f4f4f4', pillText: '#2a2a2a' }
-};
-
-const avatarGradients = [
-  'linear-gradient(135deg,#555555,#222222)',
-  'linear-gradient(135deg,#666666,#333333)',
-  'linear-gradient(135deg,#888888,#444444)',
-  'linear-gradient(135deg,#444444,#111111)',
-  'linear-gradient(135deg,#777777,#3a3a3a)',
-  'linear-gradient(135deg,#999999,#555555)'
-];
 
 function avatarGrad(name) {
   let h = 0;
@@ -306,18 +255,12 @@ function avatarGrad(name) {
 }
 
 function buildArchiveCard(s) {
-  const col = catAccentColors[s.category_id] || { band: 'linear-gradient(90deg,#cccccc,#e0e0e0)', pill: '#f0f0f0', pillText: '#444444' };
-  const icon = '';
-  const grad = avatarGrad(s.author_name);
-  const srcTag = s.source_type === 'aggregated'
-    ? `<span class="archive-source-tag">Aggregated</span>`
-    : '';
+  const srcTag = s.source_type === 'aggregated' ? `<span class="archive-source-tag">Aggregated</span>` : '';
   return `
     <div class="archive-card" onclick="navigate('detail','${s.submission_id}')">
-      <div class="archive-card-band" style="background:${col.band}"></div>
       <div class="archive-card-body">
         <div class="archive-card-top">
-          <span class="archive-cat-pill" style="background:${col.pill};color:${col.pillText}">${esc(s.category_name)}</span>
+          <span class="archive-cat-pill">${esc(s.category_name)}</span>
           ${srcTag}
         </div>
         <div class="archive-card-title">${esc(s.title)}</div>
@@ -325,7 +268,7 @@ function buildArchiveCard(s) {
       </div>
       <div class="archive-card-footer">
         <div class="archive-card-author">
-          <div class="archive-author-avatar" style="background:${grad}">${initials(s.author_name)}</div>
+          <div class="archive-author-avatar">${initials(s.author_name)}</div>
           <div class="archive-author-info">
             <div class="archive-author-name">${esc(s.author_name)}</div>
             <div class="archive-author-date">${fmtDate(s.created_at)}</div>
