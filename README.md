@@ -1,4 +1,4 @@
-# Yoruba Archives 🏺
+# Yoruba Archives 
 
 > A peer-reviewed digital repository for Yoruba cultural research — preserving oral traditions, art, linguistics, philosophy, and historical scholarship for future generations.
 
@@ -9,13 +9,6 @@
 ## Description
 
 Yoruba Archives is a fullstack web application that serves as a centralized, verified digital archive for Yoruba cultural and academic research. It connects researchers, reviewers, and the public around a curated body of scholarship across six thematic categories:
-
-- 🏺 Art & Sculpture
-- 🔤 Linguistics & Orthography
-- ☽ Cosmology & Philosophy
-- ⚔️ Historical Monarchies & Wars
-- 🥁 Musical Traditions & Oral Poetry
-- 🌿 Indigenous Medicine & Botany
 
 **Key Features:**
 - Public browsable archive with full-text search and category filters
