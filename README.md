@@ -190,17 +190,6 @@ notifications ──────────────────────
 
 ---
 
-## Designs
-
-### UI Overview
-
-The interface uses a rich dark design system inspired by Yoruba visual heritage:
-
-- **Color palette:** Deep charcoal background (#0b0a0f), gold (#d4a843), terracotta (#c4623a), jade (#3a9c8e)
-- **Typography:** Cormorant Garamond (headings, culturally resonant serif) + Outfit (UI sans-serif)
-- **Motifs:** Adinkra-pattern dividers, radial gold gradients, glassmorphism nav
-- **Interactions:** Card hover lift, smooth modal animations, skeleton loading states, toast notifications
-
 ### Pages
 
 1. **Home** — Hero with live stats, featured research strip, category tiles, top research requests
@@ -250,16 +239,8 @@ docker run -p 3001:3001 yoruba-archives
 
 ---
 
-## Video Demo Notes
-
-Cover these flows in the demo:
-1. Home page — hero, stats, featured research
-2. Browse archive — search, category filter, source filter
-3. View a research detail with shareable link copy
-4. Register as a researcher → submit research with file
-5. Login as reviewer → navigate to admin review queue → make decision
-6. Research Needs board — browse, vote, submit new request
-7. Admin dashboard — stats, user role management, external sources
+## Video Demo Link
+https://www.loom.com/share/2b1b84bbf8dd41c590944594de1bc3ca
 
 ---
 
