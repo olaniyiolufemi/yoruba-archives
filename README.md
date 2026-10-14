@@ -87,10 +87,6 @@ The app runs at **http://localhost:3001**
 | Role       | Email                         | Password   |
 |------------|-------------------------------|------------|
 | Admin      | olufemi.o@alustudent.com      | admin123   |
-| Reviewer   | wabimbola@oauife.edu.ng       | pass123    |
-| Researcher | blawal@unilag.edu.ng          | pass123    |
-| Researcher | sadeleke@ui.edu.ng            | pass123    |
-| Public     | kbalogun@gmail.com            | pass123    |
 
 ---
 
