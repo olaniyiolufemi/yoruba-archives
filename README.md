@@ -6,7 +6,7 @@ Built for the BSc Software Engineering capstone *"Digitization of Yoruba Culture
 
 | | |
 |---|---|
-| **Walkthrough video** | *Link coming soon* |
+| **Walkthrough video** | [Watch the walkthrough video (Loom)](https://www.loom.com/share/e6d4de5ff6d34975917c54d9ff341f76) |
 | **Technical report** | [Read the technical report (PDF, Google Drive)](https://drive.google.com/file/d/1-4zqFMl50wWB3sM03f_h2eyrwtDJyArp/view?usp=sharing) |
 | **Repository** | [github.com/olaniyiolufemi/yoruba-archives](https://github.com/olaniyiolufemi/yoruba-archives) |
 
