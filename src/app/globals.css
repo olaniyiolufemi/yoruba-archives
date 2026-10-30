@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* Design tokens: white, ink and hairlines, with the brand blue as a highlighter
+   and yellow/green only as small markers. */
+@theme inline {
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-face), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #111111;
+  --color-ink-2: #333333;
+  --color-muted: #666666;
+  --color-soft: #8a8a8a;
+  --color-surface: #f4f4f4;
+  --color-surface-2: #efefef;
+  --color-hairline: #e8e8e8;
+  --color-line: #dcdcdc;
+  --color-blue: #2564d4;
+  --color-yellow: #fde74c;
+  --color-green: #aecb45;
+}
+
+body {
+  @apply bg-white font-sans text-[15px] leading-[1.6] text-ink antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-blue) 18%, white);
+}
+
+@utility container-page {
+  @apply w-full px-5 sm:px-8 lg:px-12;
+}
+@utility btn {
+  @apply inline-flex min-h-9 items-center justify-center gap-2 rounded-[5px] border px-4 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn border-[#1a1a1a] bg-[#1a1a1a] text-white hover:border-[#333] hover:bg-[#333];
+}
+@utility btn-secondary {
+  @apply btn border-line bg-white text-ink hover:bg-surface;
+}
+@utility btn-danger {
+  @apply btn border-line bg-white text-red-700 hover:bg-red-50;
+}
+@utility label {
+  @apply mb-1.5 block text-sm text-ink-2;
+}
+@utility hint {
+  @apply mt-1.5 text-xs text-soft;
+}
+@utility input {
+  @apply block min-h-10 w-full rounded-[4px] border border-line bg-white px-3 py-2 text-base text-ink placeholder:text-soft focus:border-blue focus:outline-none sm:text-sm;
+}
+@utility card {
+  @apply rounded-[3px] bg-surface p-5 sm:p-6;
+}
+@utility badge {
+  @apply inline-flex items-center gap-1.5 rounded-[3px] px-2 py-0.5 text-xs;
+}
+@utility display {
+  @apply font-display font-light tracking-[-0.025em] leading-[1.02];
+}
+@utility page-title {
+  @apply display text-4xl text-ink sm:text-5xl;
+}
+@utility eyebrow {
+  @apply text-[11px] uppercase tracking-[0.08em] text-ink-2;
+}
+@utility error-text {
+  @apply text-sm text-red-700;
+}
+@utility dot-grid {
+  background-image: radial-gradient(circle, #e2e2e2 1px, transparent 1.4px);
+  background-size: 24px 24px;
+}
+
+/* Slow fade-up reveal; disabled for people who prefer reduced motion. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@utility reveal {
+  animation: fade-up 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+  }
+}
+
+/* Fade masks so artwork dissolves into the paper. */
+@utility art-fade {
+  mask-image: linear-gradient(to bottom, #000 45%, transparent 88%), linear-gradient(to right, transparent 0%, #000 22%);
+  mask-composite: intersect;
+}
+@utility art-fade-down {
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+@utility art-fade-left {
+  mask-image: linear-gradient(to right, transparent 0%, #000 45%), linear-gradient(to bottom, #000 50%, transparent 95%);
+  mask-composite: intersect;
+}
