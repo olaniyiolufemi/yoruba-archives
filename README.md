@@ -1,273 +1,153 @@
-# Yoruba Archives 🏺
+# Yoruba Archives
 
-> A peer-reviewed digital repository for Yoruba cultural research — preserving oral traditions, art, linguistics, philosophy, and historical scholarship for future generations.
+A community-driven, full-stack web archive where independent researchers contribute Yoruba cultural research, designated reviewers verify it, and anyone can search what has been verified.
 
-**GitHub Repository:** https://github.com/olaniyiolufemi/yoruba-archives
-
----
-
-## Description
-
-Yoruba Archives is a fullstack web application that serves as a centralized, verified digital archive for Yoruba cultural and academic research. It connects researchers, reviewers, and the public around a curated body of scholarship across six thematic categories:
-
-- 🏺 Art & Sculpture
-- 🔤 Linguistics & Orthography
-- ☽ Cosmology & Philosophy
-- ⚔️ Historical Monarchies & Wars
-- 🥁 Musical Traditions & Oral Poetry
-- 🌿 Indigenous Medicine & Botany
-
-**Key Features:**
-- Public browsable archive with full-text search and category filters
-- Researcher account registration and file upload (PDF, image, audio, video)
-- Peer-review workflow (Reviewer/Admin decision: verify, revise, reject)
-- Shareable links for individual submissions
-- Research Needs board with community upvoting
-- Aggregated external sources (AODL, AJOL, Internet Archive, British Museum)
-- Admin dashboard: stats, review queue, user management, source tracking
-- JWT-based authentication (custom, no external dependency)
-- In-app notification system
+Built for the BSc Software Engineering capstone *"Digitization of Yoruba Culture Research through Archival Technology for Contributing and Verifying Research"*.
 
 ---
 
-## Tech Stack
+## What it does
 
-| Layer    | Technology |
-|----------|-----------|
-| Frontend | Vanilla HTML/CSS/JavaScript (SPA) |
-| Backend  | Node.js + Express |
-| Database | SQLite via better-sqlite3 |
-| Auth     | Custom HMAC-SHA256 JWT (no jsonwebtoken library) |
-| File Upload | Multer |
-| Fonts | Google Fonts — Outfit + Cormorant Garamond |
+| Who | Can |
+|---|---|
+| **Public user** | Search and filter verified research, open its permanent link, view or download the file, report a problem (signed in) |
+| **Researcher** | Register, submit research (title, abstract, category, keywords, PDF/JPEG) in Yorùbá, English or both, track status, read reviewer comments, revise and resubmit |
+| **Reviewer** | See only the submissions assigned to them, examine the file, complete the four-point checklist, then approve, reject or return for revision with comments |
+| **Administrator** | Manage users and reviewer roles, (re)assign reviewers, manage categories, resolve flagged content, delete submissions |
+
+### Requirements traceability (Chapter 4)
+
+| Req. | Where it is implemented |
+|---|---|
+| **FR1** Upload title, abstract, category, keywords, PDF/JPEG | `src/components/SubmissionForm.tsx`, `POST /api/submissions`, storage bucket limited to `application/pdf` and `image/jpeg` |
+| **FR2** Yorùbá, English or both | `language` field (`yoruba` / `english` / `both`); search ignores tone marks, so `orisa` finds `òrìṣà` |
+| **FR3** Every submission goes to a designated reviewer first | `pick_reviewer()` assigns the reviewer with the fewest pending items (never the author); RLS keeps unverified items private |
+| **FR4** Approve, reject or return with comments | `/review/[id]`, `POST /api/submissions/[id]/review`, `record_review()`. Approval requires all four checklist items; rejection or revision requires comments |
+| **FR5** Email + dashboard notification on status change | `src/lib/notify.ts` writes a notification and emails via Resend (logged to the console when no key is set) |
+| **FR6** Unique, public, shareable link once verified | `/research/[link]`, issued at approval and kept permanently, with a "Verified (date), reviewed by" label |
+| **FR7** Search and filter by keyword, category, language, date | `/search` and `GET /api/search` → `search_research()` (verified content only) |
+| **FR8** Admin: users, reviewers, categories, flagged content | `/admin/*` and `/api/admin/*` |
+| **NFR1** Easy without training | Plain forms, inline hints, one primary action per page |
+| **NFR2** Search < 3 s | Trigram-indexed search (`pg_trgm`); `/api/search` returns a `Server-Timing` header for load tests |
+| **NFR4** Access-controlled storage | Private bucket, Postgres RLS on every table, 5-minute signed URLs from `/api/files/[id]`, passwords handled by Supabase Auth |
+| **NFR5** Scalable search & storage | Managed Postgres + object storage; files upload straight from the browser to storage |
+| **NFR6** Responsive | Tailwind, mobile-first layouts |
 
 ---
 
-## Environment Setup
+## Tech stack (Section 4.5)
 
-### Prerequisites
+| Tier (Figure 4.2) | Technology |
+|---|---|
+| Presentation | Next.js 16 (App Router, React 19) + Tailwind CSS 4 |
+| Application | Next.js Route Handlers on Node.js (`src/app/api/*`): auth checks, review workflow, notifications, search |
+| Data | Supabase: Postgres (schema, RLS, SQL functions), Auth, Storage |
+| Email | Resend (optional) |
+| CI/CD | GitHub Actions (`.github/workflows/ci.yml`) + Vercel |
 
-- Node.js ≥ 18
-- npm ≥ 9
+The database schema follows the ERD in Figure 4.3: `profiles` (USER), `categories`, `research_submissions`, `peer_reviews`, plus `notifications` and `content_flags`. See `supabase/migrations/`.
 
-### Installation
+---
 
+## Setup
+
+### 1. Prerequisites
+- Node.js 22 or newer
+- A Supabase project (the free tier is enough)
+- [Supabase CLI](https://supabase.com/docs/guides/cli) for applying the migration
+
+### 2. Install
 ```bash
-git clone https://github.com/olaniyiolufemi/yoruba-archives.git
-cd yoruba-archives
 npm install
+cp .env.example .env.local   # then fill in the values
 ```
 
-### Seed the Database
+### 3. Create the database
+```bash
+supabase link --project-ref <your-project-ref>
+supabase db push            # applies supabase/migrations/*
+```
+
+In the Supabase dashboard, open **Authentication → URL Configuration**. Set **Site URL** to your app URL and add `<your-app-url>/auth/confirm` to the redirect URLs.
+
+### 4. Seed demo data (optional)
+```bash
+SEED_PASSWORD='choose-a-password' npm run seed           # first run
+SEED_PASSWORD='choose-a-password' npm run seed -- --reset # wipe and reseed
+```
+This creates 6 demo accounts (`admin@`, `reviewer1@`, `reviewer2@`, `researcher1@`, `researcher2@`, `public@yoruba-archives.test`), 7 categories, and 13 sample items covering every state: verified, pending, revision requested and rejected.
+
+### 5. Run
+```bash
+npm run dev      # http://localhost:3000
+```
+
+### Promote the first administrator
+Self-registration only offers *researcher* or *public*. To create your first admin, run this in the Supabase SQL editor:
+```sql
+update public.profiles set role = 'admin' where email = 'you@example.com';
+```
+After that, admins assign reviewer and admin roles from **Admin → Users & reviewers**.
+
+---
+
+## Testing
 
 ```bash
-npm run seed
-```
-
-This populates the database with:
-- 5 users (admin, reviewer, 2 researchers, 1 public)
-- 6 categories
-- 6 research submissions (4 contributed, 2 aggregated)
-- 3 peer reviews
-- 3 research requests
-- 4 external sources
-- 2 notifications
-
-### Generate Sample PDF Files
-
-```bash
-node server/generate_sample_files.js
-```
-
-### Start the Server
-
-```bash
-npm run dev
-```
-
-The app runs at **http://localhost:3001**
-
----
-
-## Default Test Accounts
-
-| Role       | Email                         | Password   |
-|------------|-------------------------------|------------|
-| Admin      | olufemi.o@alustudent.com      | admin123   |
-| Reviewer   | wabimbola@oauife.edu.ng       | pass123    |
-| Researcher | blawal@unilag.edu.ng          | pass123    |
-| Researcher | sadeleke@ui.edu.ng            | pass123    |
-| Public     | kbalogun@gmail.com            | pass123    |
-
----
-
-## Project Structure
-
-```
-yoruba-archives/
-├── client/
-│   ├── index.html        # SPA shell — all pages, modals
-│   ├── style.css         # Complete design system (dark, gold/terracotta palette)
-│   └── app.js            # All frontend logic — routing, API calls, state
-├── server/
-│   ├── index.js          # Express app entry point
-│   ├── db.js             # SQLite connector (auto-runs schema)
-│   ├── schema.sql        # Full DB schema — 7 tables with indexes
-│   ├── seed.js           # Seed data with authentic Yoruba research content
-│   ├── generate_sample_files.js
-│   ├── middleware/
-│   │   └── auth.js       # JWT sign/verify + requireAuth/requireRole
-│   ├── routes/
-│   │   ├── auth.js       # POST /api/auth/login, /register
-│   │   ├── submissions.js # CRUD + file upload + review endpoint
-│   │   ├── requests.js   # Research needs + voting
-│   │   ├── notifications.js
-│   │   └── admin.js      # Stats, users, pending queue, sources
-│   └── uploads/          # Uploaded files (gitignored)
-├── package.json
-├── .gitignore
-└── README.md
+npm test          # unit tests for validation, search filters, slugs, review rules
+npm run typecheck
+npm run lint
+npm run build
 ```
 
 ---
 
-## API Endpoints
+## Deployment (Vercel)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | /api/auth/register | — | Register new user |
-| POST | /api/auth/login | — | Login, returns JWT |
-| GET | /api/submissions | Optional | List/search submissions |
-| GET | /api/submissions/categories | — | All categories |
-| GET | /api/submissions/:id | — | Single submission |
-| GET | /api/submissions/share/:link | — | By shareable link |
-| POST | /api/submissions | Auth | Submit research + file |
-| PATCH | /api/submissions/:id/review | Reviewer/Admin | Peer review decision |
-| DELETE | /api/submissions/:id | Admin | Delete |
-| GET | /api/requests | — | List research requests |
-| POST | /api/requests | Auth | Create request |
-| POST | /api/requests/:id/vote | Auth | Toggle vote |
-| PATCH | /api/requests/:id/status | Reviewer/Admin | Update status |
-| GET | /api/notifications | Auth | User notifications |
-| PATCH | /api/notifications/:id/read | Auth | Mark read |
-| PATCH | /api/notifications/mark-all-read | Auth | Mark all read |
-| GET | /api/admin/stats | Admin | Dashboard statistics |
-| GET | /api/admin/users | Admin | All users |
-| PATCH | /api/admin/users/:id/role | Admin | Change user role |
-| GET | /api/admin/pending | Admin/Reviewer | Review queue |
-| GET | /api/admin/external-sources | Admin | External sources |
+1. Import the GitHub repository into Vercel.
+2. Add the environment variables from `.env.example`. `SUPABASE_SERVICE_ROLE_KEY` is server-only.
+3. Set `NEXT_PUBLIC_SITE_URL` to the production URL and add `<url>/auth/confirm` to Supabase's redirect URLs.
+4. Every push to `main` runs CI and deploys.
 
 ---
 
-## Database Schema
+## Project structure
 
 ```
-users ──────────────────────────────────────┐
-  user_id, name, email, password_hash,       │
-  role (researcher/public/reviewer/admin),   │
-  institution, created_at                    │
-                                             │
-research_submissions ─────────────────────── ┤
-  submission_id (TEXT PK), user_id, title,   │
-  abstract, category_id, file_url,           │
-  source_type (contributed/aggregated),       │
-  status (pending/verified/rejected/         │
-          revision_requested),              │
-  shareable_link UNIQUE, created_at          │
-                                             │
-peer_reviews ────────────────────────────────┤
-  review_id, submission_id, reviewer_id,     │
-  decision, comments, reviewed_at            │
-                                             │
-categories ─────────────────────────────────┤
-  category_id, category_name UNIQUE         │
-                                             │
-research_requests ──────────────────────────┤
-  request_id, user_id, topic, description,  │
-  vote_count, status, created_at            │
-                                             │
-votes ──────────────────────────────────────┤
-  vote_id, request_id, user_id             │
-  UNIQUE(request_id, user_id)              │
-                                             │
-notifications ──────────────────────────────┘
-  notification_id, user_id, title, message,
-  submission_id, is_read, created_at
+src/
+  app/
+    page.tsx                    Home: search box, categories, recently verified
+    search/                     FR7 search & filters
+    research/[link]/            FR6 permanent public page
+    login/ register/ auth/      Supabase Auth
+    dashboard/                  Researcher: submissions, submit, edit & resubmit
+    review/                     Reviewer queue and review form
+    notifications/              Dashboard notifications
+    admin/                      Users, reviewers, categories, submissions, flags
+    api/                        Application layer (route handlers)
+  components/                   UI components
+  lib/                          Supabase clients, auth, validation, notifications, email
+  proxy.ts                      Session refresh + sign-in redirect
+supabase/migrations/            Schema, RLS, storage bucket, SQL functions
+scripts/seed.mts                Demo data
 ```
 
 ---
 
-## Designs
+## Changes from v1
 
-### UI Overview
+v1 was a vanilla HTML/JS single-page app on Express + SQLite. v2 follows the final design document:
 
-The interface uses a rich dark design system inspired by Yoruba visual heritage:
-
-- **Color palette:** Deep charcoal background (#0b0a0f), gold (#d4a843), terracotta (#c4623a), jade (#3a9c8e)
-- **Typography:** Cormorant Garamond (headings, culturally resonant serif) + Outfit (UI sans-serif)
-- **Motifs:** Adinkra-pattern dividers, radial gold gradients, glassmorphism nav
-- **Interactions:** Card hover lift, smooth modal animations, skeleton loading states, toast notifications
-
-### Pages
-
-1. **Home** — Hero with live stats, featured research strip, category tiles, top research requests
-2. **Archive** — Searchable, filterable grid with pagination (category, source type, full-text)
-3. **Detail** — Full abstract, file download, shareable link copy, reviewer action panel
-4. **Research Needs** — Upvotable community requests board with status filters
-5. **Admin Dashboard** — Stats overview, bar charts, review queue, user role management, external sources
-6. **My Submissions** — Researcher's personal submission history
+- Rebuilt on **Next.js + Tailwind + Supabase** (Postgres, Auth, Storage).
+- Added **keywords**, **language** (Yorùbá / English / both) and **PDF/JPEG-only** uploads.
+- Every submission is **assigned to a designated reviewer**. Reviewers complete a **four-point checklist**.
+- Researchers can **edit, then revise and resubmit**. The status history and comments stay visible.
+- **Email notifications** sit alongside the dashboard notifications.
+- **Search filters** by language and date, and the search ignores Yorùbá diacritics.
+- Admin can manage **categories** and **flagged content**, and **reassign reviewers**.
+- Files are **private** and served by short-lived signed URLs. Passwords are handled by Supabase Auth (v1 used unsalted SHA-256).
+- **Removed** the aggregated external sources (Section 3.4: search covers only content held on the platform) and the Research Needs voting board.
 
 ---
 
-## Deployment Plan
-
-### Local (Current)
-```
-Express server serves both API (/api/*) and static frontend (client/)
-SQLite file database — no external DB dependency
-```
-
-### Production Target — Railway / Render
-
-1. Push to GitHub (repo already initialized)
-2. Connect Railway or Render to the GitHub repo
-3. Set environment variables:
-   - `PORT=3001`
-   - `JWT_SECRET=<your-secret>`
-   - `DB_PATH=/data/data.db` (persistent volume)
-4. Add build command: `npm install && npm run seed`
-5. Start command: `npm start`
-6. Attach persistent disk for `/data` and `/server/uploads`
-
-### Alternative — Docker
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY . .
-RUN npm install && npm run seed
-EXPOSE 3001
-CMD ["npm", "start"]
-```
-
-```bash
-docker build -t yoruba-archives .
-docker run -p 3001:3001 yoruba-archives
-```
-
----
-
-## Video Demo Notes
-
-Cover these flows in the demo:
-1. Home page — hero, stats, featured research
-2. Browse archive — search, category filter, source filter
-3. View a research detail with shareable link copy
-4. Register as a researcher → submit research with file
-5. Login as reviewer → navigate to admin review queue → make decision
-6. Research Needs board — browse, vote, submit new request
-7. Admin dashboard — stats, user role management, external sources
-
----
-
-*Built by Olaniyi Olufemi — African Leadership University Capstone 2026*
+*Built by Olaniyi Olufemi. Supervisor: Simeon Nsabiyumva.*
