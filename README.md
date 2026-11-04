@@ -12,18 +12,6 @@ Built for the BSc Software Engineering capstone *"Digitization of Yoruba Culture
 
 ---
 
-## Contents
-
-1. [Project overview](#project-overview)
-2. [Technical requirements](#technical-requirements)
-3. [Installation](#installation)
-4. [Running the tests](#running-the-tests)
-5. [Repository structure](#repository-structure)
-6. [Requirements traceability](#requirements-traceability)
-7. [Deployment](#deployment)
-
----
-
 ## Project overview
 
 Yoruba research is scattered across university repositories, private collections and social media, and very little of it is checked. Yoruba Archives gives that work one open, reviewed home.
