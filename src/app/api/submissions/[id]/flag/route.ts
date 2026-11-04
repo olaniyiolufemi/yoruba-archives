@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { authorize, jsonError, readJson } from '@/lib/api';
+import { authorize, jsonError, overLimit, readJson } from '@/lib/api';
 import { adminIds, notify } from '@/lib/notify';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isUuid } from '@/lib/validation';
@@ -17,6 +17,9 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/submiss
   if (reason.length < 5 || reason.length > 1000) return jsonError(400, 'Describe the problem in 5–1000 characters.');
 
   const admin = createAdminClient();
+  if (await overLimit(admin, { table: 'content_flags', column: 'reporter_id', userId: viewer.id, max: 20, windowMinutes: 24 * 60 })) {
+    return jsonError(429, 'You have sent a lot of reports today. Please try again tomorrow.');
+  }
   const { data: sub } = await admin
     .from('research_submissions')
     .select('id, title, status')

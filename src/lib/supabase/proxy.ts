@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { DEMO_COOKIE, readDemoSession } from '../demo-session';
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from './env';
 
-const PROTECTED = ['/dashboard', '/review', '/admin', '/notifications'];
+const PROTECTED = ['/dashboard', '/review', '/admin', '/notifications', '/reset-password'];
 
 /** Refreshes the auth cookie on every request and bounces signed-out visitors. */
 function redirectToLogin(request: NextRequest, path: string) {

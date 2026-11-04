@@ -15,6 +15,9 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
     <AuthShell title="Sign in" art="/art/ife-head.svg">
       <LoginForm demo={isDemoMode()} next={next} initialError={error} />
       <p className="text-sm text-muted">
+        <Link href="/forgot-password" className="underline">Forgot your password?</Link>
+      </p>
+      <p className="text-sm text-muted">
         New here? <Link href="/register" className="underline">Create an account</Link>
       </p>
     </AuthShell>

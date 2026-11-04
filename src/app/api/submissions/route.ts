@@ -1,4 +1,4 @@
-import { authorize, jsonError, readJson } from '@/lib/api';
+import { authorize, jsonError, overLimit, readJson } from '@/lib/api';
 import { STORAGE_BUCKET } from '@/lib/constants';
 import { adminIds, notify } from '@/lib/notify';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -18,6 +18,9 @@ export async function POST(request: Request) {
   if (!file.ok) return jsonError(400, file.error);
 
   const admin = createAdminClient();
+  if (await overLimit(admin, { table: 'research_submissions', column: 'user_id', userId: viewer.id, max: 10, windowMinutes: 60 })) {
+    return jsonError(429, 'You have submitted a lot in the last hour. Please wait a while before submitting more.');
+  }
   const { data: category } = await admin.from('categories').select('id').eq('id', meta.value.category_id).maybeSingle();
   if (!category) return jsonError(400, 'That category no longer exists.');
 

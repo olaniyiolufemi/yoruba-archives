@@ -1,4 +1,5 @@
 import 'server-only';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { getViewer, type Viewer } from './auth';
 import type { Role } from './constants';
 
@@ -14,6 +15,23 @@ export async function authorize(
   if (!viewer) return { error: jsonError(401, 'Please sign in.') };
   if (roles && !roles.includes(viewer.role)) return { error: jsonError(403, 'You do not have permission to do that.') };
   return { viewer };
+}
+
+/**
+ * Rate limit for writes, counted from the user's own recent rows so it needs no
+ * extra infrastructure. Fails closed: if the count cannot be read, the write is refused.
+ */
+export async function overLimit(
+  admin: SupabaseClient,
+  { table, column, userId, max, windowMinutes }: { table: string; column: string; userId: string; max: number; windowMinutes: number },
+): Promise<boolean> {
+  const since = new Date(Date.now() - windowMinutes * 60_000).toISOString();
+  const { count, error } = await admin
+    .from(table)
+    .select('id', { count: 'exact', head: true })
+    .eq(column, userId)
+    .gte('created_at', since);
+  return Boolean(error) || (count ?? 0) >= max;
 }
 
 /** Parses a JSON object body. Non-JSON content types are ignored, which also blocks cross-site form posts. */
