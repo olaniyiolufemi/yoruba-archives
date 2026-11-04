@@ -17,7 +17,7 @@ export default async function NotificationsPage() {
     .limit(100);
 
   return (
-    <div className="container-page max-w-3xl space-y-6">
+    <div className="container-page space-y-6">
       <h1 className="page-title">Notifications</h1>
       <NotificationList items={(data ?? []) as Notification[]} role={viewer.role} />
     </div>
