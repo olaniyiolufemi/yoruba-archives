@@ -3,13 +3,20 @@ import { createServerClient } from '@supabase/ssr';
 import { DEMO_COOKIE, readDemoSession } from '../demo-session';
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from './env';
 
-const PROTECTED = ['/dashboard', '/review', '/admin', '/notifications', '/reset-password'];
+const PROTECTED = ['/dashboard', '/review', '/admin', '/notifications', '/reset-password', '/account'];
+
+// Signed-in sessions end after this long without a request. The cookie holds the
+// session id and the time of the last request, so a fresh sign-in starts a new clock.
+const IDLE_COOKIE = 'last_active';
+const IDLE_LIMIT_MS = 2 * 60 * 60 * 1000;
 
 /** Refreshes the auth cookie on every request and bounces signed-out visitors. */
-function redirectToLogin(request: NextRequest, path: string) {
+function redirectToLogin(request: NextRequest, path: string, error?: string) {
   const url = request.nextUrl.clone();
   url.pathname = '/login';
-  url.search = `?next=${encodeURIComponent(path + request.nextUrl.search)}`;
+  const params = new URLSearchParams({ next: path + request.nextUrl.search });
+  if (error) params.set('error', error);
+  url.search = `?${params}`;
   return NextResponse.redirect(url);
 }
 
@@ -38,6 +45,29 @@ export async function updateSession(request: NextRequest) {
   });
 
   const { data } = await supabase.auth.getClaims();
-  const signedIn = Boolean(data?.claims?.sub);
-  return !signedIn && isProtected(path) ? redirectToLogin(request, path) : response;
+  const claims = data?.claims;
+  if (!claims?.sub) return isProtected(path) ? redirectToLogin(request, path) : response;
+
+  const sessionId = String(claims.session_id ?? '');
+  const [lastSession, lastSeen] = (request.cookies.get(IDLE_COOKIE)?.value ?? '').split('.');
+  if (lastSession === sessionId && Date.now() - Number(lastSeen) > IDLE_LIMIT_MS) {
+    // Revoke the session in Supabase, and clear its cookies here too so the
+    // visitor is signed out even if Supabase cannot be reached.
+    await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    const authCookies = request.cookies.getAll().map((c) => c.name).filter((name) => name.startsWith('sb-'));
+    authCookies.forEach((name) => request.cookies.delete(name));
+    const signedOut = isProtected(path)
+      ? redirectToLogin(request, path, 'You were signed out after 2 hours of inactivity. Please sign in again.')
+      : NextResponse.next({ request });
+    [...authCookies, IDLE_COOKIE].forEach((name) => signedOut.cookies.delete(name));
+    return signedOut;
+  }
+
+  response.cookies.set(IDLE_COOKIE, `${sessionId}.${Date.now()}`, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  });
+  return response;
 }

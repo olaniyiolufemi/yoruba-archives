@@ -1,6 +1,6 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getViewer, type Viewer } from './auth';
+import { getViewer, isMfaPending, type Viewer } from './auth';
 import type { Role } from './constants';
 
 export function jsonError(status: number, error: string) {
@@ -12,7 +12,7 @@ export async function authorize(
   roles?: Role[],
 ): Promise<{ viewer: Viewer; error?: never } | { viewer?: never; error: Response }> {
   const viewer = await getViewer();
-  if (!viewer) return { error: jsonError(401, 'Please sign in.') };
+  if (!viewer) return { error: jsonError(401, (await isMfaPending()) ? 'Enter the code from your authenticator app to finish signing in.' : 'Please sign in.') };
   if (roles && !roles.includes(viewer.role)) return { error: jsonError(403, 'You do not have permission to do that.') };
   return { viewer };
 }

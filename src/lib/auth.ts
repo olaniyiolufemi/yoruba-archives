@@ -14,28 +14,44 @@ export type Viewer = {
   institution: string | null;
 };
 
-/** The signed-in user and their profile, or null. Memoised per request. */
-export const getViewer = cache(async (): Promise<Viewer | null> => {
-  if (isDemoMode()) return getDemoViewer();
+type Session = { viewer: Viewer | null; mfaPending: boolean };
+
+/**
+ * The signed-in user and whether they still owe their second factor. Someone
+ * who has entered their password but not their authenticator code counts as
+ * signed out everywhere. Memoised per request.
+ */
+const getSession = cache(async (): Promise<Session> => {
+  if (isDemoMode()) return { viewer: await getDemoViewer(), mfaPending: false };
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
-  if (!claims?.sub) return null;
+  if (!claims?.sub) return { viewer: null, mfaPending: false };
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, full_name, role, institution')
-    .eq('id', claims.sub)
-    .maybeSingle();
-  if (!profile) return null;
+  const [{ data: profile }, { data: mfaRequired, error: mfaError }] = await Promise.all([
+    supabase.from('profiles').select('id, full_name, role, institution').eq('id', claims.sub).maybeSingle(),
+    supabase.rpc('mfa_required'),
+  ]);
+  // Fail closed: if the check itself fails, treat the second factor as still owed.
+  if (mfaError || mfaRequired !== false) return { viewer: null, mfaPending: true };
+  if (!profile) return { viewer: null, mfaPending: false };
 
-  return { ...profile, email: typeof claims.email === 'string' ? claims.email : '' } as Viewer;
+  return {
+    viewer: { ...profile, email: typeof claims.email === 'string' ? claims.email : '' } as Viewer,
+    mfaPending: false,
+  };
 });
+
+/** The signed-in user and their profile, or null. Memoised per request. */
+export const getViewer = cache(async (): Promise<Viewer | null> => (await getSession()).viewer);
+
+/** True when the visitor signed in with a password but has not entered their authenticator code yet. */
+export const isMfaPending = cache(async (): Promise<boolean> => (await getSession()).mfaPending);
 
 /** For pages: redirects to sign-in, or home when the role is not allowed. */
 export async function requireViewer(roles?: Role[]): Promise<Viewer> {
   const viewer = await getViewer();
-  if (!viewer) redirect('/login');
+  if (!viewer) redirect((await isMfaPending()) ? '/login/mfa' : '/login');
   if (roles && !roles.includes(viewer.role)) redirect('/');
   return viewer;
 }

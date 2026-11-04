@@ -16,7 +16,9 @@ export function ResetPasswordForm() {
         e.preventDefault();
         const form = new FormData(e.currentTarget);
         const password = String(form.get('password'));
-        if (password.length < 8) return setError('Use at least 8 characters.');
+        if (password.length < 10 || !/[a-z]/i.test(password) || !/\d/.test(password)) {
+          return setError('Use at least 10 characters, with letters and numbers.');
+        }
         if (password !== form.get('confirm')) return setError('The two passwords do not match.');
         setBusy(true);
         setError(undefined);
@@ -37,12 +39,12 @@ export function ResetPasswordForm() {
     >
       <div>
         <label htmlFor="password" className="label">New password</label>
-        <input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} className="input" />
-        <p className="hint">At least 8 characters.</p>
+        <input id="password" name="password" type="password" autoComplete="new-password" required minLength={10} className="input" />
+        <p className="hint">At least 10 characters, with letters and numbers.</p>
       </div>
       <div>
         <label htmlFor="confirm" className="label">Confirm new password</label>
-        <input id="confirm" name="confirm" type="password" autoComplete="new-password" required minLength={8} className="input" />
+        <input id="confirm" name="confirm" type="password" autoComplete="new-password" required minLength={10} className="input" />
       </div>
       {error && <p className="error-text" role="alert">{error}</p>}
       <button type="submit" className="btn-primary w-full" disabled={busy}>{busy ? 'Saving…' : 'Save new password'}</button>

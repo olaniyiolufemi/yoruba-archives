@@ -9,7 +9,9 @@ How each key feature could be misused, and what stops it.
 | Sign-up | Register with someone else's email | Email confirmation is required before the first sign-in. |
 | Sign-up | Give yourself the reviewer or admin role | The profile trigger only accepts `researcher` or `public`; other roles are granted by an admin. |
 | Sign-up | Oversized name or institution | Capped at 120 / 200 characters by the trigger and table constraints. |
-| Sign-in | Guess passwords | Supabase Auth limits sign-in and sign-up to 30 requests per 5 minutes per IP. |
+| Sign-in | Guess passwords | Supabase Auth limits sign-in and sign-up to 30 requests per 5 minutes per IP. New passwords need 10+ characters with letters and numbers. |
+| Sign-in | Use a stolen or leaked password | Anyone can turn on two-step sign-in with an authenticator app (`/account/security`). Until the code is entered, the app treats them as signed out and RLS hides their data. |
+| Sessions | Use a device someone left signed in | Sessions end after 2 hours without activity. Signing out revokes every session for the account. |
 | Password reset | Take over an account by resetting its password | The reset link goes only to the account's inbox, works once and expires within an hour. The form gives the same reply for unknown emails, so it cannot reveal who is registered. |
 | Password reset | Flood an inbox with reset emails | Supabase sends at most one email per address per 60 seconds, within its hourly email limit. |
 | Submit research | Spam the review queue | 10 submissions per user per hour (`/api/submissions`). |
@@ -34,6 +36,9 @@ How each key feature could be misused, and what stops it.
 - **Authentication → Sign In / Providers → Email:** "Confirm email" is on.
 - **Authentication → URL Configuration:** the redirect URLs include `https://<your-domain>/auth/confirm**`, so reset and confirmation links can return to the site.
 - **Authentication → Rate Limits:** the defaults are kept or tightened.
+- **Authentication → Multi-Factor:** "Authenticator app (TOTP)" is enabled.
+- **Authentication → Sign In / Providers → Email:** minimum password length is 10, password requirements are "Letters and digits", and "Secure password change" is on. On a paid plan, also turn on "Prevent use of leaked passwords".
+- **Optional:** turn on CAPTCHA protection (Cloudflare Turnstile or hCaptcha) under **Authentication → Attack Protection** to slow down password guessing from many IPs.
 
 ## Reporting a vulnerability
 

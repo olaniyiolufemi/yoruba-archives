@@ -7,7 +7,9 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const password = process.env.SEED_PASSWORD;
 if (!url || !key) throw new Error('Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local');
-if (!password || password.length < 8) throw new Error('Set SEED_PASSWORD (8+ characters) for the demo accounts');
+if (!password || password.length < 10 || !/[a-z]/i.test(password) || !/\d/.test(password)) {
+  throw new Error('Set SEED_PASSWORD (10+ characters, with letters and numbers) for the demo accounts');
+}
 
 const db = createClient(url, key, { auth: { persistSession: false } });
 const BUCKET = 'research-files';

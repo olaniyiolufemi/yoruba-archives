@@ -97,8 +97,8 @@ export function RegisterForm({ demo }: { demo?: boolean }) {
       </fieldset>
       <div>
         <label htmlFor="password" className="label">Password</label>
-        <input id="password" name="password" type="password" autoComplete="new-password" minLength={8} required className="input" />
-        <p className="hint">At least 8 characters.</p>
+        <input id="password" name="password" type="password" autoComplete="new-password" minLength={10} required className="input" />
+        <p className="hint">At least 10 characters, with letters and numbers.</p>
       </div>
       {error && <p className="error-text" role="alert">{error}</p>}
       <button type="submit" className="btn-primary w-full" disabled={busy}>{busy ? 'Creating account…' : 'Create account'}</button>

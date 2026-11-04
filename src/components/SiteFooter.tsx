@@ -13,6 +13,7 @@ export async function SiteFooter() {
     ? [
         ...(viewer.role !== 'public' ? [{ href: '/dashboard', label: 'My research' }] : []),
         { href: '/notifications', label: 'Notifications' },
+        { href: '/account/security', label: 'Account security' },
       ]
     : [
         { href: '/login', label: 'Sign in' },

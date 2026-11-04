@@ -27,7 +27,9 @@ export function createDemoAccount(input: { email: string; password: string; full
   const email = input.email.trim().toLowerCase();
   const full_name = input.full_name.trim().slice(0, 120);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Enter a valid email address.' };
-  if (input.password.length < 8) return { error: 'Password must be at least 8 characters.' };
+  if (input.password.length < 10 || !/[a-z]/i.test(input.password) || !/\d/.test(input.password)) {
+    return { error: 'Password must be at least 10 characters, with letters and numbers.' };
+  }
   if (!full_name) return { error: 'Enter your name.' };
 
   const accounts = load();

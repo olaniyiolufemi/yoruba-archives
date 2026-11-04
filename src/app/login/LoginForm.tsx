@@ -28,7 +28,8 @@ export function LoginForm({ next, initialError, demo }: { next: string; initialE
           router.refresh();
           return;
         }
-        const { error } = await createClient().auth.signInWithPassword({
+        const supabase = createClient();
+        const { error } = await supabase.auth.signInWithPassword({
           email: String(form.get('email')),
           password: String(form.get('password')),
         });
@@ -43,7 +44,8 @@ export function LoginForm({ next, initialError, demo }: { next: string; initialE
           );
           return;
         }
-        router.push(next);
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        router.push(aal?.nextLevel === 'aal2' && aal.currentLevel !== 'aal2' ? `/login/mfa?next=${encodeURIComponent(next)}` : next);
         router.refresh();
       }}
     >
