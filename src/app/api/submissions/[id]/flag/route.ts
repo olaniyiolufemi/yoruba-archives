@@ -27,13 +27,14 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/submiss
     .maybeSingle();
   if (!sub || sub.status !== 'verified') return jsonError(404, 'Submission not found.');
 
-  const { data: existing } = await admin
+  const { data: existing, error: existingError } = await admin
     .from('content_flags')
     .select('id')
     .eq('submission_id', id)
     .eq('reporter_id', viewer.id)
     .eq('status', 'open')
     .maybeSingle();
+  if (existingError) return jsonError(500, 'Could not save the flag. Please try again.');
   if (existing) return jsonError(409, 'You have already flagged this item. An administrator will look at it.');
 
   const { error } = await admin.from('content_flags').insert({ submission_id: id, reporter_id: viewer.id, reason });

@@ -34,6 +34,13 @@ How each key feature could be misused, and what stops it.
 - Failed sign-ins are reported by the sign-in pages, because sign-in runs between the browser and Supabase Auth. Someone scripting directly against Supabase skips this report, but Supabase still records the attempt in **Logs → Auth** in its dashboard.
 - IP addresses come from the `x-forwarded-for` header set by the hosting platform. Behind a host that does not overwrite that header, the IP can be spoofed.
 
+## Failing safely
+
+- Access checks fail closed. If the session, role, two-factor or rate-limit check cannot be completed, the request is treated as signed out or refused.
+- Multi-step admin actions check each write. Unpublishing hides the item first, so a later failure leaves it hidden rather than public.
+- Users see plain messages. Unexpected page errors show a generic page with a reference code that matches the full error in the server logs, and raw database or storage errors are never shown.
+- Edge-case tests in `src/lib/validation.test.ts` cover wrong types, oversized input, path traversal, impossible dates and redirect tricks. CI runs them on every push, every pull request and weekly.
+
 ## Dependencies
 
 - `.npmrc` sets `ignore-scripts=true`, so packages cannot run install scripts on your machine or in CI. If a future package genuinely needs one, run it explicitly (for example `npm rebuild <package>`).

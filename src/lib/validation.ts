@@ -189,6 +189,13 @@ export type SearchFilters = {
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** A real calendar date in YYYY-MM-DD form; "2026-02-30" and "2026-13-45" are rejected. */
+function isRealDate(value: string): boolean {
+  if (!DATE_RE.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 function first(value: string | string[] | undefined | null): string {
   return (Array.isArray(value) ? value[0] : value ?? '').trim();
 }
@@ -205,8 +212,8 @@ export function parseSearchFilters(params: Record<string, string | string[] | un
     q: first(params.q).replace(/[%_\\]/g, ' ').slice(0, 200),
     category: isUuid(category) ? category : null,
     language: LANGUAGES.includes(language as Language) ? (language as Language) : null,
-    from: DATE_RE.test(from) ? from : null,
-    to: DATE_RE.test(to) ? to : null,
+    from: isRealDate(from) ? from : null,
+    to: isRealDate(to) ? to : null,
     page: Number.isFinite(page) && page > 0 ? Math.min(page, 1000) : 1,
   };
 }

@@ -56,7 +56,14 @@ export function SubmissionForm({ userId, categories, initial }: { userId: string
         .upload(path, file, { contentType: file.type, upsert: false });
       if (uploadError) {
         setStatus(undefined);
-        return setError(`Upload failed: ${uploadError.message}`);
+        console.error('[upload]', uploadError.message);
+        return setError(
+          /exceed|too large|payload/i.test(uploadError.message)
+            ? 'That file is too large. Files must be 20 MB or smaller.'
+            : /mime|type/i.test(uploadError.message)
+              ? 'Only PDF or JPEG files are accepted.'
+              : 'The upload failed. Check your connection and try again.',
+        );
       }
       Object.assign(payload, { file_path: path, file_name: file.name, file_type: file.type });
     }

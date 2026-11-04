@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   checkFile,
   filterTerm,
+  isUuid,
   matchesFileSignature,
   normalizeKeywords,
   parseFileRef,
@@ -118,4 +119,70 @@ test('matchesFileSignature checks the leading bytes, not the declared type', () 
   assert.equal(matchesFileSignature(jpeg, 'application/pdf'), false);
   assert.equal(matchesFileSignature(html, 'application/pdf'), false);
   assert.equal(matchesFileSignature(new Uint8Array(), 'image/jpeg'), false);
+});
+
+// Edge cases and hostile input (OWASP A10): every parser must reject or clean
+// unexpected types and sizes instead of throwing or passing them through.
+
+test('parseSubmissionMetadata rejects wrong types and oversized fields', () => {
+  const ok = { title: 'Oríkì of Ọ̀yọ́', abstract: 'A study of praise poetry in the Ọ̀yọ́ court.', keywords: 'oriki', language: 'yoruba', category_id: CATEGORY };
+  assert.equal(parseSubmissionMetadata({ ...ok, title: 12345 }).ok, false);
+  assert.equal(parseSubmissionMetadata({ ...ok, title: ['a', 'b', 'c'] }).ok, false);
+  assert.equal(parseSubmissionMetadata({ ...ok, title: '     ' }).ok, false);
+  assert.equal(parseSubmissionMetadata({ ...ok, abstract: 'x'.repeat(5001) }).ok, false);
+  assert.equal(parseSubmissionMetadata({ ...ok, keywords: [null, {}, 7, '  '] }).ok, false);
+  assert.equal(parseSubmissionMetadata({ ...ok, language: { toString: () => 'yoruba' } }).ok, false);
+  assert.equal(parseSubmissionMetadata({ ...ok, category_id: `${CATEGORY}' or 1=1` }).ok, false);
+  assert.equal(parseSubmissionMetadata(ok).ok, true);
+});
+
+test('normalizeKeywords caps the number and length of keywords', () => {
+  assert.equal(normalizeKeywords(Array.from({ length: 100 }, (_, i) => `k${i}`)).length, 10);
+  assert.equal(normalizeKeywords(['x'.repeat(1000)])[0].length, 40);
+  assert.deepEqual(normalizeKeywords({ a: 1 }), []);
+});
+
+test('parseFileRef rejects path traversal and other folders', () => {
+  const ref = (file_path: string) => parseFileRef({ file_path, file_name: 'a.pdf', file_type: 'application/pdf' }, USER).ok;
+  assert.equal(ref(`${USER}/../other/file.pdf`), false);
+  assert.equal(ref(`${USER}/sub/file.pdf`), false);
+  assert.equal(ref(`${USER}/file.pdf.html`), false);
+  assert.equal(ref(`${USER}/..pdf`), false);
+  assert.equal(ref(`0b7c1f0e-0000-4a51-9a64-8a0a3f2b1c11/file.pdf`), false);
+  assert.equal(ref(`/${USER}/file.pdf`), false);
+  assert.equal(parseFileRef({ file_path: `${USER}/file.pdf`, file_name: 'a.pdf', file_type: 'text/html' }, USER).ok, false);
+});
+
+test('parseReview only accepts real booleans and caps comments', () => {
+  const pass = { authorship_check: 'true', source_check: 1, cultural_relevance_check: true, sensitivity_check: true };
+  assert.equal(parseReview({ decision: 'verified', ...pass }).ok, false);
+  assert.equal(parseReview({ decision: 'approve' }).ok, false);
+  const long = parseReview({ decision: 'rejected', comments: 'x'.repeat(10_000) });
+  assert.equal(long.ok && long.value.comments.length, 5000);
+});
+
+test('parseSearchFilters drops impossible dates, arrays and huge pages', () => {
+  assert.equal(parseSearchFilters({ from: '2026-13-45' }).from, null);
+  assert.equal(parseSearchFilters({ from: '2026-02-30' }).from, null);
+  assert.equal(parseSearchFilters({ to: '2024-02-29' }).to, '2024-02-29');
+  assert.equal(parseSearchFilters({ q: ['ifa', 'oriki'] }).q, 'ifa');
+  assert.equal(parseSearchFilters({ page: '99999999' }).page, 1000);
+  assert.equal(parseSearchFilters({ page: '1e3' }).page, 1);
+  assert.equal(parseSearchFilters({ q: 'x'.repeat(1000) }).q.length, 200);
+});
+
+test('safeNextPath rejects protocol-relative, backslash and script URLs', () => {
+  assert.equal(safeNextPath('//evil.com'), '/dashboard');
+  assert.equal(safeNextPath('/\\evil.com'), '/dashboard');
+  assert.equal(safeNextPath('javascript:alert(1)'), '/dashboard');
+  assert.equal(safeNextPath(''), '/dashboard');
+  assert.equal(safeNextPath(['/admin']), '/dashboard');
+  assert.equal(safeNextPath('/review?x=1'), '/review?x=1');
+});
+
+test('isUuid and filterTerm handle non-strings and long input', () => {
+  assert.equal(isUuid(null), false);
+  assert.equal(isUuid({}), false);
+  assert.equal(isUuid(USER.toUpperCase()), true);
+  assert.equal(filterTerm('a'.repeat(500)).length, 100);
 });

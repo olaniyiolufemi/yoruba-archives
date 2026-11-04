@@ -49,7 +49,21 @@ export function RegisterForm({ demo }: { demo?: boolean }) {
           },
         });
         setBusy(false);
-        if (error) return setError(error.name === 'AuthRetryableFetchError' || /fetch/i.test(error.message) ? 'Could not reach the account service. Check your connection and try again.' : error.message);
+        if (error) {
+          return setError(
+            error.name === 'AuthRetryableFetchError' || /fetch/i.test(error.message)
+              ? 'Could not reach the account service. Check your connection and try again.'
+              : error.code === 'user_already_exists' || error.code === 'email_exists'
+                ? 'An account with this email already exists. Sign in instead.'
+                : error.code === 'weak_password'
+                  ? 'That password is too weak. Use at least 10 characters, with letters and numbers.'
+                  : error.code === 'over_email_send_rate_limit' || error.status === 429
+                    ? 'Too many attempts. Please wait a few minutes and try again.'
+                    : error.code === 'email_address_invalid' || error.code === 'validation_failed'
+                      ? 'Check your email address and try again.'
+                      : 'Could not create your account. Please try again.',
+          );
+        }
         if (data.session) {
           router.push('/dashboard');
           router.refresh();

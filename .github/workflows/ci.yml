@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Weekly run, so tests and the dependency checks keep running without new commits.
+  schedule:
+    - cron: '0 6 * * 1'
 
 # The workflow only reads the repo; it never needs to write with its token.
 permissions:

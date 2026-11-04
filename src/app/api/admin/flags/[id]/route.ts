@@ -27,20 +27,25 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
 
   const resolved = { resolved_by: auth.viewer.id, resolved_at: new Date().toISOString() };
   if (action === 'dismiss') {
-    await admin.from('content_flags').update({ status: 'dismissed', ...resolved }).eq('id', id);
+    const { error } = await admin.from('content_flags').update({ status: 'dismissed', ...resolved }).eq('id', id);
+    if (error) return jsonError(500, 'Could not dismiss the flag. Please try again.');
     await logSecurityEvent('flag_resolved', { userId: auth.viewer.id, details: { flag_id: id, submission_id: flag.submission_id, action } });
     return Response.json({ status: 'dismissed' });
   }
 
   const sub = flag.research_submissions as unknown as { title: string; user_id: string; status: string } | null;
   const comments = `Unpublished by an administrator after a content report: ${flag.reason}`;
-  await admin.from('research_submissions').update({ status: 'revision_requested' }).eq('id', flag.submission_id);
-  await admin.from('peer_reviews').insert({ submission_id: flag.submission_id, reviewer_id: auth.viewer.id, decision: 'revision_requested', comments });
-  await admin
-    .from('content_flags')
-    .update({ status: 'actioned', ...resolved })
-    .eq('submission_id', flag.submission_id)
-    .eq('status', 'open');
+  // Hide the item first: if a later step fails, it stays hidden rather than public.
+  const { error: hideError } = await admin.from('research_submissions').update({ status: 'revision_requested' }).eq('id', flag.submission_id);
+  if (hideError) return jsonError(500, 'Could not unpublish the item. It is still public; please try again.');
+  const [{ error: reviewError }, { error: flagError }] = await Promise.all([
+    admin.from('peer_reviews').insert({ submission_id: flag.submission_id, reviewer_id: auth.viewer.id, decision: 'revision_requested', comments }),
+    admin.from('content_flags').update({ status: 'actioned', ...resolved }).eq('submission_id', flag.submission_id).eq('status', 'open'),
+  ]);
+  if (reviewError || flagError) {
+    console.error('[flags] unpublished but could not finish', reviewError?.message ?? flagError?.message);
+    return jsonError(500, 'The item is unpublished, but the flag could not be closed. Please try again.');
+  }
   await logSecurityEvent('flag_resolved', { userId: auth.viewer.id, details: { flag_id: id, submission_id: flag.submission_id, action } });
 
   if (sub) {

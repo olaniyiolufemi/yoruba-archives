@@ -26,6 +26,7 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
   await logSecurityEvent('role_changed', { userId: auth.viewer.id, details: { target_id: id, from: before.role, to: role } });
 
   let reassigned = 0;
+  let failed = 0;
   if (before.role === 'reviewer' && role !== 'reviewer') {
     const { data: queue } = await admin
       .from('research_submissions')
@@ -34,7 +35,11 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
       .eq('status', 'pending');
     for (const sub of queue ?? []) {
       const { data: next } = await admin.rpc('pick_reviewer', { p_author: sub.user_id });
-      await admin.from('research_submissions').update({ assigned_reviewer_id: next ?? null }).eq('id', sub.id);
+      const { error: moveError } = await admin.from('research_submissions').update({ assigned_reviewer_id: next ?? null }).eq('id', sub.id);
+      if (moveError) {
+        failed += 1;
+        continue;
+      }
       if (next) {
         await notify(admin, [
           {
@@ -51,5 +56,6 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
     }
   }
 
-  return Response.json({ role, reassigned });
+  if (failed) console.error(`[users] ${failed} pending submissions could not be reassigned from ${id}`);
+  return Response.json({ role, reassigned, failed });
 }
