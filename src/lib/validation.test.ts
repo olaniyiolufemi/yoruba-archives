@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   checkFile,
+  filterTerm,
   normalizeKeywords,
   parseFileRef,
   parseReview,
@@ -93,4 +94,16 @@ test('safeNextPath blocks open redirects', () => {
   assert.equal(safeNextPath('/\\evil.com'), '/dashboard');
   assert.equal(safeNextPath('https://evil.com'), '/dashboard');
   assert.equal(safeNextPath(undefined), '/dashboard');
+});
+
+test('filterTerm strips filter syntax and wildcards but keeps Yoruba names and emails', () => {
+  assert.equal(filterTerm('Ọláníyì Olúfẹ́mi'), 'Ọláníyì Olúfẹ́mi');
+  assert.equal(filterTerm("o'neil+test@example.com"), "o'neil+test@example.com");
+  assert.equal(filterTerm('a%,role.eq.admin),(x'), 'arole.eq.adminx');
+  assert.equal(filterTerm('*_"\\'), '');
+  assert.equal(filterTerm(42), '');
+});
+
+test('parseSearchFilters treats LIKE wildcards as spaces', () => {
+  assert.equal(parseSearchFilters({ q: 'ifa%_\\oriki' }).q, 'ifa   oriki');
 });

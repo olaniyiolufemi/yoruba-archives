@@ -25,7 +25,7 @@ const hash = (password: string, salt: string) => scryptSync(password, salt, 32).
 
 export function createDemoAccount(input: { email: string; password: string; full_name: string; institution: string; role: Role }) {
   const email = input.email.trim().toLowerCase();
-  const full_name = input.full_name.trim();
+  const full_name = input.full_name.trim().slice(0, 120);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Enter a valid email address.' };
   if (input.password.length < 8) return { error: 'Password must be at least 8 characters.' };
   if (!full_name) return { error: 'Enter your name.' };
@@ -38,7 +38,7 @@ export function createDemoAccount(input: { email: string; password: string; full
     id: randomUUID(),
     email,
     full_name,
-    institution: input.institution.trim() || null,
+    institution: input.institution.trim().slice(0, 200) || null,
     role: input.role,
     salt,
     password_hash: hash(input.password, salt),

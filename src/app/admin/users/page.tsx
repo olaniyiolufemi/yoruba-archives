@@ -4,6 +4,7 @@ import { requireViewer } from '@/lib/auth';
 import type { Role } from '@/lib/constants';
 import { formatDate } from '@/lib/format';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { filterTerm } from '@/lib/validation';
 
 export const metadata: Metadata = { title: 'Users' };
 
@@ -12,11 +13,11 @@ type Row = { id: string; full_name: string; email: string; role: Role; instituti
 // FR8: manage users and reviewers. Promote lecturers to reviewer here.
 export default async function AdminUsersPage({ searchParams }: PageProps<'/admin/users'>) {
   const viewer = await requireViewer(['admin']);
-  const q = typeof (await searchParams).q === 'string' ? String((await searchParams).q).trim() : '';
+  const q = filterTerm((await searchParams).q);
   const admin = createAdminClient();
 
   let query = admin.from('profiles').select('id, full_name, email, role, institution, created_at').order('created_at', { ascending: false }).limit(200);
-  if (q) query = query.or(`full_name.ilike.%${q.replace(/[%,()]/g, '')}%,email.ilike.%${q.replace(/[%,()]/g, '')}%`);
+  if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
   const [{ data: users }, { data: workload }] = await Promise.all([
     query,
     admin.from('research_submissions').select('assigned_reviewer_id').eq('status', 'pending').not('assigned_reviewer_id', 'is', null),

@@ -60,7 +60,7 @@ export function RegisterForm({ demo }: { demo?: boolean }) {
     >
       <div>
         <label htmlFor="full_name" className="label">Full name</label>
-        <input id="full_name" name="full_name" autoComplete="name" required className="input" />
+        <input id="full_name" name="full_name" autoComplete="name" required maxLength={120} className="input" />
       </div>
       <div>
         <label htmlFor="email" className="label">Email</label>
@@ -68,7 +68,7 @@ export function RegisterForm({ demo }: { demo?: boolean }) {
       </div>
       <div>
         <label htmlFor="institution" className="label">Institution or affiliation <span className="font-normal text-muted">(optional)</span></label>
-        <input id="institution" name="institution" className="input" placeholder="e.g. University of Ibadan, or independent" />
+        <input id="institution" name="institution" maxLength={200} className="input" placeholder="e.g. University of Ibadan, or independent" />
       </div>
       <fieldset>
         <legend className="label">I want to</legend>

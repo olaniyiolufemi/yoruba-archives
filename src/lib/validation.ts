@@ -153,6 +153,15 @@ export function safeNextPath(value: unknown, fallback = '/dashboard'): string {
   return typeof value === 'string' && /^\/(?![/\\])/.test(value) ? value : fallback;
 }
 
+/**
+ * Keeps letters (any script, with tone marks), digits, spaces and the few symbols
+ * names and emails use. Everything else is dropped, so the term can be placed in a
+ * PostgREST filter string without adding conditions or LIKE wildcards.
+ */
+export function filterTerm(value: unknown, max = 100): string {
+  return text(value).replace(/[^\p{L}\p{M}\p{N}\s@.'+-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
 export function parseRole(value: unknown): Role | null {
   return ROLES.includes(value as Role) ? (value as Role) : null;
 }
@@ -180,7 +189,8 @@ export function parseSearchFilters(params: Record<string, string | string[] | un
   const to = first(params.to);
   const page = Number.parseInt(first(params.page), 10);
   return {
-    q: first(params.q).slice(0, 200),
+    // % and _ are LIKE wildcards in the search function, so they are treated as spaces.
+    q: first(params.q).replace(/[%_\\]/g, ' ').slice(0, 200),
     category: isUuid(category) ? category : null,
     language: LANGUAGES.includes(language as Language) ? (language as Language) : null,
     from: DATE_RE.test(from) ? from : null,
