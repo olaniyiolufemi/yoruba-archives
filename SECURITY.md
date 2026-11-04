@@ -17,12 +17,18 @@ How each key feature could be misused, and what stops it.
 | Submit research | Spam the review queue | 10 submissions per user per hour (`/api/submissions`). |
 | Submit research | Attach another user's file | The file path must sit in the uploader's own storage folder, checked by the API and by the storage policy. |
 | Submit research | Upload malware or huge files | The bucket is private, accepts only PDF and JPEG up to 20 MB, and files are served from Supabase's domain through 5-minute signed links. |
+| Submit research | Disguise another kind of file as a PDF or JPEG | The API reads the file's first bytes and rejects (and deletes) anything that is not really a PDF or JPEG. |
 | Review | Approve your own work, or work assigned to someone else | The API refuses both; only the assigned reviewer or an admin can decide. |
 | Review | Approve without checking | Approval requires all four checklist items, enforced again in the database function. |
 | Flag content | Harass an author or flood admins with reports | One open flag per person per item, and 20 reports per user per day. |
 | Read data | Use the public anon key to read drafts, emails or other users' profiles | Row-level security limits drafts to their author, reviewer and admins, hides email columns, and shows profiles only to related users. |
 | Admin | Reach admin pages or APIs without the role | Every admin page and API route checks the role itself; the service-role key never reaches the browser. |
 | Links | Redirect people to another site via `?next=` | Only same-site paths are accepted. |
+
+## Dependencies
+
+- `.npmrc` sets `ignore-scripts=true`, so packages cannot run install scripts on your machine or in CI. If a future package genuinely needs one, run it explicitly (for example `npm rebuild <package>`).
+- CI checks registry signatures (`npm audit signatures`) and fails on high-severity production vulnerabilities. Dependabot updates arrive as pull requests that go through the same checks.
 
 ## Known gaps
 

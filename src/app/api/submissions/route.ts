@@ -1,6 +1,7 @@
 import { authorize, jsonError, overLimit, readJson } from '@/lib/api';
 import { STORAGE_BUCKET } from '@/lib/constants';
 import { adminIds, notify } from '@/lib/notify';
+import { checkUploadedFile } from '@/lib/storage';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseFileRef, parseSubmissionMetadata } from '@/lib/validation';
 
@@ -24,8 +25,12 @@ export async function POST(request: Request) {
   const { data: category } = await admin.from('categories').select('id').eq('id', meta.value.category_id).maybeSingle();
   if (!category) return jsonError(400, 'That category no longer exists.');
 
-  const { data: uploaded } = await admin.storage.from(STORAGE_BUCKET).exists(file.value.file_path);
-  if (!uploaded) return jsonError(400, 'The file upload did not finish. Please attach it again.');
+  const upload = await checkUploadedFile(admin, file.value.file_path, file.value.file_type);
+  if (upload === 'missing') return jsonError(400, 'The file upload did not finish. Please attach it again.');
+  if (upload === 'mismatch') {
+    await admin.storage.from(STORAGE_BUCKET).remove([file.value.file_path]);
+    return jsonError(400, 'That file is not a valid PDF or JPEG. Please attach the original file.');
+  }
 
   const { data: reviewerId } = await admin.rpc('pick_reviewer', { p_author: viewer.id });
 

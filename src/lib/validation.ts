@@ -98,6 +98,18 @@ export function parseFileRef(body: Record<string, unknown>, userId: string): Res
   return { ok: true, value: { file_path, file_name, file_type: file_type as AllowedFileType } };
 }
 
+// Leading "magic" bytes: PDFs start with "%PDF-", JPEGs with FF D8 FF.
+const FILE_SIGNATURES: Record<AllowedFileType, number[]> = {
+  'application/pdf': [0x25, 0x50, 0x44, 0x46, 0x2d],
+  'image/jpeg': [0xff, 0xd8, 0xff],
+};
+
+/** True when the file's first bytes match its declared type. */
+export function matchesFileSignature(bytes: Uint8Array, type: AllowedFileType): boolean {
+  const signature = FILE_SIGNATURES[type];
+  return Boolean(signature) && signature.every((byte, i) => bytes[i] === byte);
+}
+
 /** Client-side check before uploading to storage. */
 export function checkFile(file: { type: string; size: number; name: string }): string | null {
   const isJpegName = /\.jpe?g$/i.test(file.name);

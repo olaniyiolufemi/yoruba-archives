@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { authorize, jsonError, readJson } from '@/lib/api';
 import { STORAGE_BUCKET } from '@/lib/constants';
 import { notify } from '@/lib/notify';
+import { checkUploadedFile } from '@/lib/storage';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isUuid, parseFileRef, parseSubmissionMetadata } from '@/lib/validation';
 
@@ -33,8 +34,12 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/submis
   if (body.file_path && body.file_path !== current.file_path) {
     const file = parseFileRef(body, viewer.id);
     if (!file.ok) return jsonError(400, file.error);
-    const { data: uploaded } = await admin.storage.from(STORAGE_BUCKET).exists(file.value.file_path);
-    if (!uploaded) return jsonError(400, 'The file upload did not finish. Please attach it again.');
+    const upload = await checkUploadedFile(admin, file.value.file_path, file.value.file_type);
+    if (upload === 'missing') return jsonError(400, 'The file upload did not finish. Please attach it again.');
+    if (upload === 'mismatch') {
+      await admin.storage.from(STORAGE_BUCKET).remove([file.value.file_path]);
+      return jsonError(400, 'That file is not a valid PDF or JPEG. Please attach the original file.');
+    }
     Object.assign(update, file.value);
   }
 

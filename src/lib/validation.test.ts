@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   checkFile,
   filterTerm,
+  matchesFileSignature,
   normalizeKeywords,
   parseFileRef,
   parseReview,
@@ -106,4 +107,15 @@ test('filterTerm strips filter syntax and wildcards but keeps Yoruba names and e
 
 test('parseSearchFilters treats LIKE wildcards as spaces', () => {
   assert.equal(parseSearchFilters({ q: 'ifa%_\\oriki' }).q, 'ifa   oriki');
+});
+
+test('matchesFileSignature checks the leading bytes, not the declared type', () => {
+  const pdf = new TextEncoder().encode('%PDF-1.7\n');
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00]);
+  const html = new TextEncoder().encode('<html><script>');
+  assert.equal(matchesFileSignature(pdf, 'application/pdf'), true);
+  assert.equal(matchesFileSignature(jpeg, 'image/jpeg'), true);
+  assert.equal(matchesFileSignature(jpeg, 'application/pdf'), false);
+  assert.equal(matchesFileSignature(html, 'application/pdf'), false);
+  assert.equal(matchesFileSignature(new Uint8Array(), 'image/jpeg'), false);
 });
