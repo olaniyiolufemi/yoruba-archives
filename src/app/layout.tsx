@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Hanken_Grotesk, Lexend } from 'next/font/google';
+import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import './globals.css';
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <body className="flex min-h-full flex-col">
         <SiteHeader />
         <main className="flex-1 pb-20 pt-8 sm:pt-12">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );
