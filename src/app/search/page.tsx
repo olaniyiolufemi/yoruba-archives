@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Eyebrow } from '@/components/Eyebrow';
 import { ResultCard } from '@/components/ResultCard';
 import { SearchForm } from '@/components/SearchForm';
 import { getCategories } from '@/lib/queries';
@@ -32,8 +31,7 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
     <div className="container-page space-y-10">
       <div className="grid gap-6 border-b border-hairline pb-10 lg:grid-cols-2 lg:items-end">
         <div>
-          <Eyebrow>The archive</Eyebrow>
-          <h1 className="page-title mt-4">Browse verified research</h1>
+          <h1 className="page-title">Browse verified research</h1>
         </div>
         <p className="max-w-md text-muted lg:justify-self-end">
           Only research that has passed review appears here. Search in Yorùbá or English; tone marks are optional.

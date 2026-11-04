@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Eyebrow } from '@/components/Eyebrow';
 import { ResultCard } from '@/components/ResultCard';
 import { getViewer } from '@/lib/auth';
 import { CHECKLIST } from '@/lib/constants';
@@ -54,54 +53,51 @@ export default async function HomePage() {
 
   return (
     <div className="relative -mt-8 overflow-x-clip sm:-mt-12">
-      {/* Backdrop: dot grid and the Ọpọ́n Ifá engraving, bleeding off the left edge. */}
+      {/* Backdrop: dot grid. */}
       <div aria-hidden className="dot-grid art-fade-down absolute inset-x-0 -top-[76px] h-[1000px]" />
-      <div
-        aria-hidden
-        className="art-fade pointer-events-none absolute top-6 left-[-75vw] w-[150vw] sm:left-[-55vw] sm:w-[110vw] lg:left-[-28vw] lg:w-[1120px]"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/art/opon-ifa.svg" alt="" className="block w-full opacity-75" />
-        {/* The one blue "selection" over the artwork. */}
-        <div className="absolute left-[74%] top-[50%] hidden h-[13%] w-[17%] bg-blue/90 mix-blend-multiply sm:block" />
-      </div>
 
-      {/* Hero */}
-      <section className="container-page relative z-10 flex min-h-[600px] flex-col items-center pb-40 pt-20 text-center sm:min-h-[680px] sm:pt-28">
-        <Eyebrow className="reveal">Ẹ kú àbọ̀ · Welcome</Eyebrow>
-        <h1 className="display reveal mt-6 max-w-[15ch] text-[44px] text-ink [animation-delay:60ms] sm:text-[64px] lg:text-[76px]">
-          <span className="text-muted">Keep</span> Yorùbá knowledge lasting.
-        </h1>
-        <p className="reveal mt-8 max-w-[440px] text-base text-muted [animation-delay:140ms]">
-          A community archive where researchers share work on Yorùbá art, history, language and belief. Reviewers verify it,
-          and anyone can find it.
-        </p>
-        <div className="reveal mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 [animation-delay:220ms]">
-          <Link href="/search" className="btn-primary px-6">Browse the archive</Link>
-          <Link href={contributeHref} className="text-sm text-ink-2 underline-offset-4 hover:underline">
-            Contribute research
-          </Link>
+      {/* Hero: the Ọpọ́n Ifá engraving beside the copy, never under it. */}
+      <section className="container-page relative z-10 grid items-center gap-12 pb-24 pt-20 sm:pt-28 lg:grid-cols-2 lg:gap-16 lg:pb-32">
+        <div className="flex flex-col items-center text-center lg:order-2 lg:items-start lg:text-left">
+          <h1 className="display reveal max-w-[15ch] text-[44px] text-ink [animation-delay:60ms] sm:text-[64px] lg:text-[68px] xl:text-[76px]">
+            <span className="text-muted">Keep</span> Yorùbá knowledge lasting.
+          </h1>
+          <p className="reveal mt-8 max-w-[440px] text-base text-muted [animation-delay:140ms]">
+            A community archive where researchers share work on Yorùbá art, history, language and belief. Reviewers verify
+            it, and anyone can find it.
+          </p>
+          <div className="reveal mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 [animation-delay:220ms] lg:justify-start">
+            <Link href="/search" className="btn-primary px-6">Browse the archive</Link>
+            <Link href={contributeHref} className="text-sm text-ink-2 underline-offset-4 hover:underline">
+              Contribute research
+            </Link>
+          </div>
+        </div>
+        <div aria-hidden className="pointer-events-none relative mx-auto w-full max-w-[420px] lg:order-1 lg:max-w-[600px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/art/opon-ifa.svg" alt="" className="block w-full opacity-75" />
+          {/* The one blue "selection" over the artwork. */}
+          <div className="absolute left-[74%] top-[50%] hidden h-[13%] w-[17%] bg-blue/90 mix-blend-multiply sm:block" />
         </div>
       </section>
 
-      {/* What we offer: a white sheet that slides over the artwork. */}
-      <section className="relative z-10 bg-white lg:ml-[17%]">
+      {/* What we offer */}
+      <section className="relative z-10 bg-white">
         <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none">
           <line x1="0" y1="100%" x2="100%" y2="0" stroke="#f0f0f0" strokeWidth="1" />
         </svg>
         <div className="relative grid border-b border-hairline lg:grid-cols-2">
-          <div className="flex min-h-[220px] flex-col justify-end px-5 pb-10 pt-14 sm:px-8 lg:min-h-[300px] lg:border-r lg:border-hairline lg:px-10">
-            <Eyebrow>What we offer</Eyebrow>
-            <h2 className="display mt-4 max-w-[14ch] text-4xl sm:text-5xl">Research the community can trust</h2>
+          <div className="flex min-h-[220px] flex-col justify-end px-5 pb-10 pt-14 sm:px-8 lg:min-h-[300px] lg:border-r lg:border-hairline lg:px-12">
+            <h2 className="display max-w-[14ch] text-4xl sm:text-5xl">Research the community can trust</h2>
           </div>
-          <div className="flex items-end px-5 pb-10 sm:px-8 lg:px-10">
+          <div className="flex items-end px-5 pb-10 sm:px-8 lg:px-12">
             <p className="max-w-md text-muted">
               Yorùbá scholarship is scattered across university repositories, private collections and social media, and
               very little of it is checked. Yorùbá Archives gives it one open, reviewed home.
             </p>
           </div>
         </div>
-        <div className="relative grid gap-5 px-5 py-8 sm:grid-cols-3 sm:px-8 lg:px-10">
+        <div className="relative grid gap-5 px-5 py-8 sm:grid-cols-3 sm:px-8 lg:px-12">
           {OFFER.map((o) => (
             <article key={o.tag} className="flex flex-col rounded-[3px] sm:min-h-[460px] bg-surface p-5 transition-colors hover:bg-surface-2 sm:p-6">
               <p className="flex items-center gap-2 text-sm text-ink-2">
@@ -121,8 +117,7 @@ export default async function HomePage() {
       <section className="container-page relative z-10 bg-white py-24 sm:py-32">
         <div className="grid gap-12 lg:grid-cols-[2fr_3fr]">
           <div>
-            <Eyebrow>How review works</Eyebrow>
-            <h2 className="display mt-4 max-w-[13ch] text-4xl sm:text-5xl">Four checks before anything is shared</h2>
+            <h2 className="display max-w-[13ch] text-4xl sm:text-5xl">Four checks before anything is shared</h2>
             <p className="mt-6 max-w-sm text-muted">
               Every submission goes to one designated reviewer. Nothing becomes public until it passes all four.
             </p>
@@ -152,8 +147,7 @@ export default async function HomePage() {
       {/* Who it is for */}
       <section className="relative z-10 bg-surface">
         <div className="container-page py-24 sm:py-28">
-          <Eyebrow>Who it is for</Eyebrow>
-          <h2 className="display mt-4 max-w-[18ch] text-4xl sm:text-5xl">Built with the people who keep the record</h2>
+          <h2 className="display max-w-[18ch] text-4xl sm:text-5xl">Built with the people who keep the record</h2>
           <ul className="mt-14 grid gap-px overflow-hidden rounded-[3px] bg-hairline sm:grid-cols-2 lg:grid-cols-4">
             {ROLES.map(([title, body], i) => (
               <li key={title} className="bg-surface p-6 lg:min-h-[220px]">
@@ -171,8 +165,7 @@ export default async function HomePage() {
       <section className="container-page relative z-10 bg-white py-24 sm:py-32">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
-            <Eyebrow>The archive</Eyebrow>
-            <h2 className="display mt-4 text-4xl sm:text-5xl">Explore by theme</h2>
+            <h2 className="display text-4xl sm:text-5xl">Explore by theme</h2>
           </div>
           <Link href="/search" className="btn-secondary">Browse all {latest.total} verified items</Link>
         </div>
@@ -215,8 +208,7 @@ export default async function HomePage() {
           className="art-fade-left pointer-events-none absolute -right-16 top-6 hidden h-[130%] w-auto opacity-80 md:block"
         />
         <div className="container-page relative py-28 sm:py-36">
-          <Eyebrow>Ìmọ̀ wa, ìtàn wa</Eyebrow>
-          <h2 className="display mt-6 max-w-[16ch] text-[40px] sm:text-[56px]">
+          <h2 className="display max-w-[16ch] text-[40px] sm:text-[56px]">
             <span className="text-muted">Our knowledge,</span> our history.
           </h2>
           <p className="mt-6 max-w-md text-muted">Add your research to the record, or start exploring what others have shared.</p>
