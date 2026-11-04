@@ -18,14 +18,14 @@
   --color-yellow: #fde74c;
   --color-green: #aecb45;
 
-  /* Text sizes one step up from Tailwind's defaults (12/14/16px) for easier reading. */
-  --text-xs: 0.8125rem;
-  --text-sm: 0.9375rem;
-  --text-base: 1.0625rem;
+  /* Text sizes well above Tailwind's defaults (12/14/16px) for easier reading. */
+  --text-xs: 1.0625rem;
+  --text-sm: 1.1875rem;
+  --text-base: 1.3125rem;
 }
 
 body {
-  @apply bg-white font-sans text-[17px] leading-[1.6] text-ink antialiased;
+  @apply bg-white font-sans text-[21px] leading-[1.6] text-ink antialiased;
 }
 
 :focus-visible {
@@ -74,7 +74,7 @@ body {
   @apply display text-4xl text-ink sm:text-5xl;
 }
 @utility eyebrow {
-  @apply text-[12px] uppercase tracking-[0.08em] text-ink-2;
+  @apply text-[16px] uppercase tracking-[0.08em] text-ink-2;
 }
 @utility error-text {
   @apply text-sm text-red-700;
