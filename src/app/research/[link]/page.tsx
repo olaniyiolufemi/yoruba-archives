@@ -77,7 +77,7 @@ export default async function ResearchPage({ params }: PageProps<'/research/[lin
         <div className="min-w-0 space-y-10">
           <section className="space-y-2">
             <h2 className="eyebrow">Abstract</h2>
-            <p className="whitespace-pre-line text-[17px] leading-[1.7] text-ink-2">{item.abstract}</p>
+            <p className="whitespace-pre-line text-[18px] leading-[1.7] text-ink-2">{item.abstract}</p>
           </section>
 
           {item.keywords.length > 0 && (
