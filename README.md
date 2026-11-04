@@ -48,7 +48,55 @@ Yoruba research is scattered across university repositories, private collections
 
 Check the [technical requirements](TECHNICAL.md#technical-requirements) first.
 
+Most commands are the same on every system. Where they differ, there is a block for each one:
+
+- **macOS:** use the Terminal app.
+- **Linux:** use any terminal.
+- **Windows:** use PowerShell, the default terminal in Windows 10 and 11. Command Prompt (`cmd`) alternatives are given where they differ.
+
+### 0. Install the tools
+
+You need Git, Node.js 22 or newer, and the Supabase CLI. Skip anything you already have; check with `git --version`, `node --version` and `supabase --version`.
+
+**macOS** (with [Homebrew](https://brew.sh)):
+
+```bash
+brew install git node supabase/tap/supabase
+```
+
+**Linux** (Debian or Ubuntu; [nvm](https://github.com/nvm-sh/nvm) installs a current Node.js):
+
+```bash
+sudo apt update && sudo apt install -y git curl
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash
+source ~/.bashrc
+nvm install 22
+```
+
+For the Supabase CLI, download the `.deb` for your processor (`linux_amd64` for most PCs, `linux_arm64` for ARM) from the [Supabase CLI releases page](https://github.com/supabase/cli/releases/latest), then install it from the folder you saved it in:
+
+```bash
+sudo apt install ./supabase_*_linux_amd64.deb
+```
+
+On Fedora or other distributions, use the `.rpm` or `.apk` file from the same page instead.
+
+**Windows** (PowerShell; [Scoop](https://scoop.sh) installs the Supabase CLI):
+
+```powershell
+winget install --id Git.Git -e
+winget install --id OpenJS.NodeJS.LTS -e
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+```
+
+Close and reopen the terminal afterwards so the new commands are found.
+
 ### 1. Clone and install
+
+Same on macOS, Linux and Windows:
 
 ```bash
 git clone https://github.com/olaniyiolufemi/yoruba-archives.git
@@ -63,11 +111,27 @@ npm install
 
 ### 3. Add environment variables
 
+Copy the template to `.env.local`.
+
+**macOS and Linux:**
+
 ```bash
 cp .env.example .env.local
 ```
 
-Fill in `.env.local`:
+**Windows (PowerShell):**
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+**Windows (Command Prompt):**
+
+```cmd
+copy .env.example .env.local
+```
+
+Open `.env.local` in any text editor (for example `open -e .env.local` on macOS, `nano .env.local` on Linux, `notepad .env.local` on Windows) and fill it in:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
@@ -83,6 +147,8 @@ EMAIL_FROM=                # optional, e.g. "Yoruba Archives <noreply@yourdomain
 
 ### 4. Create the database
 
+Same on macOS, Linux and Windows:
+
 ```bash
 supabase link --project-ref <project-ref>   # asks for the database password
 supabase db push                            # applies supabase/migrations/*
@@ -94,6 +160,8 @@ Then, in the Supabase dashboard, open **Authentication → URL Configuration**:
 - **Redirect URLs:** add `http://localhost:3000/auth/confirm`
 
 ### 5. Load sample data (optional)
+
+Same on macOS, Linux and Windows:
 
 ```bash
 npm run seed              # first run
@@ -112,6 +180,8 @@ This creates 7 categories, 13 research items in every state (verified, pending, 
 | Public user | public@yoruba-archives.test |
 
 ### 6. Run
+
+Same on macOS, Linux and Windows:
 
 ```bash
 npm run dev
@@ -133,13 +203,39 @@ Admins can then assign reviewer and admin roles from **Admin → Users**.
 
 To look around without a database, set `DEMO_MODE=1` with placeholder Supabase values. The site then uses built-in sample research and stores demo accounts on the local machine only.
 
+**macOS and Linux:**
+
 ```bash
 DEMO_MODE=1 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:9 NEXT_PUBLIC_SUPABASE_ANON_KEY=preview SUPABASE_SERVICE_ROLE_KEY=preview npm run dev
 ```
 
+**Windows (PowerShell):**
+
+```powershell
+$env:DEMO_MODE = "1"
+$env:NEXT_PUBLIC_SUPABASE_URL = "http://127.0.0.1:9"
+$env:NEXT_PUBLIC_SUPABASE_ANON_KEY = "preview"
+$env:SUPABASE_SERVICE_ROLE_KEY = "preview"
+npm run dev
+```
+
+**Windows (Command Prompt):**
+
+```cmd
+set DEMO_MODE=1
+set NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:9
+set NEXT_PUBLIC_SUPABASE_ANON_KEY=preview
+set SUPABASE_SERVICE_ROLE_KEY=preview
+npm run dev
+```
+
+On Windows these settings last until you close the terminal. On any system, you can instead put the same four lines in `.env.local` and run `npm run dev`.
+
 ---
 
 ## Running the tests
+
+Same on macOS, Linux and Windows:
 
 ```bash
 npm test            # unit tests (Node.js built-in test runner)
