@@ -7,6 +7,7 @@ const TABS = [
   { href: '/admin/users', label: 'Users & reviewers' },
   { href: '/admin/categories', label: 'Categories' },
   { href: '/admin/flags', label: 'Flagged content' },
+  { href: '/admin/security', label: 'Security log' },
 ];
 
 export default async function AdminLayout({ children }: LayoutProps<'/admin'>) {

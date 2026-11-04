@@ -1,6 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
+import { logSecurityEvent } from './audit';
 import { getDemoViewer } from './demo-auth';
 import { isDemoMode } from './demo-data';
 import { createClient } from './supabase/server';
@@ -48,11 +49,19 @@ export const getViewer = cache(async (): Promise<Viewer | null> => (await getSes
 /** True when the visitor signed in with a password but has not entered their authenticator code yet. */
 export const isMfaPending = cache(async (): Promise<boolean> => (await getSession()).mfaPending);
 
+// A layout and its page can both check the role, so log each denied request once.
+const logPageDenied = cache((userId: string, role: Role, required: string) =>
+  logSecurityEvent('access_denied', { userId, details: { role, required: required.split(','), page: true } }),
+);
+
 /** For pages: redirects to sign-in, or home when the role is not allowed. */
 export async function requireViewer(roles?: Role[]): Promise<Viewer> {
   const viewer = await getViewer();
   if (!viewer) redirect((await isMfaPending()) ? '/login/mfa' : '/login');
-  if (roles && !roles.includes(viewer.role)) redirect('/');
+  if (roles && !roles.includes(viewer.role)) {
+    await logPageDenied(viewer.id, viewer.role, roles.join(','));
+    redirect('/');
+  }
   return viewer;
 }
 

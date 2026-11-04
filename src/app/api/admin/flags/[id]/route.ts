@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { authorize, jsonError, readJson } from '@/lib/api';
+import { logSecurityEvent } from '@/lib/audit';
 import { notify } from '@/lib/notify';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isUuid } from '@/lib/validation';
@@ -27,6 +28,7 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
   const resolved = { resolved_by: auth.viewer.id, resolved_at: new Date().toISOString() };
   if (action === 'dismiss') {
     await admin.from('content_flags').update({ status: 'dismissed', ...resolved }).eq('id', id);
+    await logSecurityEvent('flag_resolved', { userId: auth.viewer.id, details: { flag_id: id, submission_id: flag.submission_id, action } });
     return Response.json({ status: 'dismissed' });
   }
 
@@ -39,6 +41,7 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
     .update({ status: 'actioned', ...resolved })
     .eq('submission_id', flag.submission_id)
     .eq('status', 'open');
+  await logSecurityEvent('flag_resolved', { userId: auth.viewer.id, details: { flag_id: id, submission_id: flag.submission_id, action } });
 
   if (sub) {
     await notify(admin, [

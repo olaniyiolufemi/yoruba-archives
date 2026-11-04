@@ -35,6 +35,7 @@ export function LoginForm({ next, initialError, demo }: { next: string; initialE
         });
         if (error) {
           setBusy(false);
+          if (error.message === 'Invalid login credentials') void sendJson('/api/auth/login-failed', 'POST', { stage: 'password', email: form.get('email') });
           setError(
             error.message === 'Email not confirmed'
               ? 'Please confirm your email first. Check your inbox.'

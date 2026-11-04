@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { authorize, jsonError, readJson } from '@/lib/api';
+import { logSecurityEvent } from '@/lib/audit';
 import { notify } from '@/lib/notify';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isUuid, parseRole } from '@/lib/validation';
@@ -22,6 +23,7 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
 
   const { error } = await admin.from('profiles').update({ role }).eq('id', id);
   if (error) return jsonError(500, 'Could not update the role.');
+  await logSecurityEvent('role_changed', { userId: auth.viewer.id, details: { target_id: id, from: before.role, to: role } });
 
   let reassigned = 0;
   if (before.role === 'reviewer' && role !== 'reviewer') {

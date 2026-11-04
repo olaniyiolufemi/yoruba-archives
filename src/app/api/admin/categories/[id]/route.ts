@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { authorize, jsonError, readJson } from '@/lib/api';
+import { logSecurityEvent } from '@/lib/audit';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isUuid, parseCategory } from '@/lib/validation';
 
@@ -13,6 +14,7 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
 
   const { error } = await createAdminClient().from('categories').update(parsed.value).eq('id', id);
   if (error) return jsonError(error.code === '23505' ? 409 : 500, error.code === '23505' ? 'That category already exists.' : 'Could not update the category.');
+  await logSecurityEvent('category_changed', { userId: auth.viewer.id, details: { action: 'update', category_id: id, name: parsed.value.name } });
   return Response.json({ id });
 }
 
@@ -25,5 +27,6 @@ export async function DELETE(_request: NextRequest, ctx: RouteContext<'/api/admi
   const { error } = await createAdminClient().from('categories').delete().eq('id', id);
   if (error?.code === '23503') return jsonError(409, 'This category still has submissions. Move them first.');
   if (error) return jsonError(500, 'Could not delete the category.');
+  await logSecurityEvent('category_changed', { userId: auth.viewer.id, details: { action: 'delete', category_id: id } });
   return Response.json({ deleted: id });
 }

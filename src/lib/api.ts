@@ -1,5 +1,6 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logSecurityEvent } from './audit';
 import { getViewer, isMfaPending, type Viewer } from './auth';
 import type { Role } from './constants';
 
@@ -13,7 +14,10 @@ export async function authorize(
 ): Promise<{ viewer: Viewer; error?: never } | { viewer?: never; error: Response }> {
   const viewer = await getViewer();
   if (!viewer) return { error: jsonError(401, (await isMfaPending()) ? 'Enter the code from your authenticator app to finish signing in.' : 'Please sign in.') };
-  if (roles && !roles.includes(viewer.role)) return { error: jsonError(403, 'You do not have permission to do that.') };
+  if (roles && !roles.includes(viewer.role)) {
+    await logSecurityEvent('access_denied', { userId: viewer.id, details: { role: viewer.role, required: roles } });
+    return { error: jsonError(403, 'You do not have permission to do that.') };
+  }
   return { viewer };
 }
 
@@ -31,7 +35,9 @@ export async function overLimit(
     .select('id', { count: 'exact', head: true })
     .eq(column, userId)
     .gte('created_at', since);
-  return Boolean(error) || (count ?? 0) >= max;
+  const limited = Boolean(error) || (count ?? 0) >= max;
+  if (limited) await logSecurityEvent('rate_limited', { userId, details: { table, max, window_minutes: windowMinutes } });
+  return limited;
 }
 
 /** Parses a JSON object body. Non-JSON content types are ignored, which also blocks cross-site form posts. */

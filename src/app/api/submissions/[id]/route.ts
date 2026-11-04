@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { authorize, jsonError, readJson } from '@/lib/api';
+import { logSecurityEvent } from '@/lib/audit';
 import { STORAGE_BUCKET } from '@/lib/constants';
 import { notify } from '@/lib/notify';
 import { checkUploadedFile } from '@/lib/storage';
@@ -21,7 +22,11 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/submis
     .select('id, user_id, status, file_path, assigned_reviewer_id, title')
     .eq('id', id)
     .maybeSingle();
-  if (!current || current.user_id !== viewer.id) return jsonError(404, 'Submission not found.');
+  if (!current) return jsonError(404, 'Submission not found.');
+  if (current.user_id !== viewer.id) {
+    await logSecurityEvent('access_denied', { userId: viewer.id, details: { action: 'edit', submission_id: id } });
+    return jsonError(404, 'Submission not found.');
+  }
   if (current.status !== 'pending' && current.status !== 'revision_requested') {
     return jsonError(409, 'Only pending or returned submissions can be edited.');
   }
@@ -37,6 +42,7 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/submis
     const upload = await checkUploadedFile(admin, file.value.file_path, file.value.file_type);
     if (upload === 'missing') return jsonError(400, 'The file upload did not finish. Please attach it again.');
     if (upload === 'mismatch') {
+      await logSecurityEvent('upload_rejected', { userId: viewer.id, details: { file_type: file.value.file_type, submission_id: id } });
       await admin.storage.from(STORAGE_BUCKET).remove([file.value.file_path]);
       return jsonError(400, 'That file is not a valid PDF or JPEG. Please attach the original file.');
     }
@@ -97,10 +103,14 @@ export async function DELETE(_request: NextRequest, ctx: RouteContext<'/api/subm
 
   const isAdmin = viewer.role === 'admin';
   const isOwner = current.user_id === viewer.id && current.status !== 'verified';
-  if (!isAdmin && !isOwner) return jsonError(403, 'You do not have permission to delete this.');
+  if (!isAdmin && !isOwner) {
+    await logSecurityEvent('access_denied', { userId: viewer.id, details: { action: 'delete', submission_id: id } });
+    return jsonError(403, 'You do not have permission to delete this.');
+  }
 
   const { error } = await admin.from('research_submissions').delete().eq('id', id);
   if (error) return jsonError(500, 'Could not delete the submission.');
   await admin.storage.from(STORAGE_BUCKET).remove([current.file_path]);
+  await logSecurityEvent('submission_deleted', { userId: viewer.id, details: { submission_id: id, author_id: current.user_id, status: current.status, by_admin: isAdmin && current.user_id !== viewer.id } });
   return Response.json({ deleted: id });
 }

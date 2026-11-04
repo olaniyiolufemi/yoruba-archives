@@ -25,6 +25,15 @@ How each key feature could be misused, and what stops it.
 | Admin | Reach admin pages or APIs without the role | Every admin page and API route checks the role itself; the service-role key never reaches the browser. |
 | Links | Redirect people to another site via `?next=` | Only same-site paths are accepted. |
 
+## Logging and alerts
+
+- Security events go to the `security_events` table: failed sign-ins (password and authenticator code), access denied, rate limits hit, rejected uploads, and admin actions (role changes, reviewer assignments, deletions, flag decisions, category changes). Admins read them at **Admin → Security log**.
+- The table is append-only. A database trigger refuses every update, delete and truncate, including from the service-role key, so entries cannot be altered through the app or the API.
+- Admins get a notification and an email when one account, email or IP repeats the same event within 15 minutes: 5 failed sign-ins, 10 access-denied errors, 3 rate-limit hits or 3 rejected uploads.
+- Each event also goes to the platform logs as a one-line JSON entry, without its details.
+- Failed sign-ins are reported by the sign-in pages, because sign-in runs between the browser and Supabase Auth. Someone scripting directly against Supabase skips this report, but Supabase still records the attempt in **Logs → Auth** in its dashboard.
+- IP addresses come from the `x-forwarded-for` header set by the hosting platform. Behind a host that does not overwrite that header, the IP can be spoofed.
+
 ## Dependencies
 
 - `.npmrc` sets `ignore-scripts=true`, so packages cannot run install scripts on your machine or in CI. If a future package genuinely needs one, run it explicitly (for example `npm rebuild <package>`).

@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import type { NextRequest } from 'next/server';
 import { authorize, jsonError, readJson } from '@/lib/api';
+import { logSecurityEvent } from '@/lib/audit';
 import { notify } from '@/lib/notify';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isUuid, parseReview, slugify } from '@/lib/validation';
@@ -26,9 +27,13 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/submiss
     .maybeSingle();
   if (!sub) return jsonError(404, 'Submission not found.');
   if (viewer.role !== 'admin' && sub.assigned_reviewer_id !== viewer.id) {
+    await logSecurityEvent('access_denied', { userId: viewer.id, details: { action: 'review', submission_id: id, reason: 'not_assigned' } });
     return jsonError(403, 'This submission is assigned to another reviewer.');
   }
-  if (sub.user_id === viewer.id) return jsonError(403, 'You cannot review your own submission.');
+  if (sub.user_id === viewer.id) {
+    await logSecurityEvent('access_denied', { userId: viewer.id, details: { action: 'review', submission_id: id, reason: 'own_submission' } });
+    return jsonError(403, 'You cannot review your own submission.');
+  }
 
   const r = review.value;
   const { data: updated, error } = await admin.rpc('record_review', {

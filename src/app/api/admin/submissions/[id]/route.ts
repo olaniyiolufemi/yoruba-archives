@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { authorize, jsonError, readJson } from '@/lib/api';
+import { logSecurityEvent } from '@/lib/audit';
 import { notify } from '@/lib/notify';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isUuid } from '@/lib/validation';
@@ -23,6 +24,7 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
 
   const { error } = await admin.from('research_submissions').update({ assigned_reviewer_id: reviewerId }).eq('id', id);
   if (error) return jsonError(500, 'Could not assign the reviewer.');
+  await logSecurityEvent('reviewer_assigned', { userId: auth.viewer.id, details: { submission_id: id, reviewer_id: reviewerId } });
 
   if (sub.status === 'pending') {
     await notify(admin, [

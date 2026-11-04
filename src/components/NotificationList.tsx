@@ -8,6 +8,7 @@ import { formatDateTime } from '@/lib/format';
 import type { Notification } from '@/lib/types';
 
 function hrefFor(n: Notification, role: Role) {
+  if (n.type === 'security_alert') return role === 'admin' ? '/admin/security' : null;
   if (!n.submission_id) return null;
   if (n.type.startsWith('review_')) return `/review/${n.submission_id}`;
   if (n.type === 'content_flagged' && role === 'admin') return '/admin/flags';

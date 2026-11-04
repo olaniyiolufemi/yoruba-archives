@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { sendJson } from '@/lib/fetch-json';
 import { createClient } from '@/lib/supabase/client';
 
 export function MfaChallengeForm({ next }: { next: string }) {
@@ -27,6 +28,7 @@ export function MfaChallengeForm({ next }: { next: string }) {
         const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
         if (error) {
           setBusy(false);
+          if (error.status !== 429) void sendJson('/api/auth/login-failed', 'POST', { stage: 'code' });
           return setError(error.status === 429 ? 'Too many attempts. Wait a minute and try again.' : 'That code is not right. Check your app and try again.');
         }
         router.push(next);

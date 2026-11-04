@@ -1,4 +1,5 @@
 import { authorize, jsonError, overLimit, readJson } from '@/lib/api';
+import { logSecurityEvent } from '@/lib/audit';
 import { STORAGE_BUCKET } from '@/lib/constants';
 import { adminIds, notify } from '@/lib/notify';
 import { checkUploadedFile } from '@/lib/storage';
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
   const upload = await checkUploadedFile(admin, file.value.file_path, file.value.file_type);
   if (upload === 'missing') return jsonError(400, 'The file upload did not finish. Please attach it again.');
   if (upload === 'mismatch') {
+    await logSecurityEvent('upload_rejected', { userId: viewer.id, details: { file_type: file.value.file_type } });
     await admin.storage.from(STORAGE_BUCKET).remove([file.value.file_path]);
     return jsonError(400, 'That file is not a valid PDF or JPEG. Please attach the original file.');
   }
